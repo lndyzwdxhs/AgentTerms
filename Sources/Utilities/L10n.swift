@@ -1,0 +1,105 @@
+import Foundation
+
+/// Localization keys for the app
+enum L10n {
+    // MARK: - General
+    static var appName: String { "AgentTerms" }
+    static var cancel: String { "cancel".localized }
+    static var create: String { "create".localized }
+    static var delete: String { "delete".localized }
+    static var save: String { "save".localized }
+    static var filter: String { "filter".localized }
+
+    // MARK: - Workspace
+    static var workspaces: String { "workspaces".localized }
+    static var newWorkspace: String { "new_workspace".localized }
+    static var newWorkspaceDesc: String { "new_workspace_desc".localized }
+    static var validGitRepo: String { "valid_git_repo".localized }
+    static var notGitRepo: String { "not_git_repo".localized }
+    static var createWorkspace: String { "create_workspace".localized }
+    static var deleteWorkspace: String { "delete_workspace".localized }
+    static var browse: String { "browse".localized }
+    static var repoPath: String { "repo_path".localized }
+
+    // MARK: - Floor
+    static var newFloor: String { "new_floor".localized }
+    static var newFloorDesc: String { "new_floor_desc".localized }
+    static var createFloor: String { "create_floor".localized }
+    static var deleteFloor: String { "delete_floor".localized }
+    static var noFloors: String { "no_floors".localized }
+    static var selectBranch: String { "select_branch".localized }
+    static var newBranch: String { "new_branch".localized }
+    static var floorName: String { "floor_name".localized }
+    static var branch: String { "branch".localized }
+    static var floors: String { "floors".localized }
+
+    // MARK: - Agent
+    static var newAgent: String { "new_agent".localized }
+    static var startAgent: String { "start_agent".localized }
+    static var deleteAgent: String { "delete_agent".localized }
+    static var openTerminal: String { "open_terminal".localized }
+    static var noAgents: String { "no_agents".localized }
+    static var taskDescription: String { "task_description".localized }
+    static var aiTool: String { "ai_tool".localized }
+
+    // MARK: - Status
+    static var running: String { "status_running".localized }
+    static var needsInput: String { "status_needs_input".localized }
+    static var idle: String { "status_idle".localized }
+    static var error: String { "status_error".localized }
+    static var unknown: String { "status_unknown".localized }
+
+    // MARK: - Empty States
+    static var welcomeTitle: String { "welcome_title".localized }
+    static var welcomeSubtitle: String { "welcome_subtitle".localized }
+    static var noFloorsTitle: String { "no_floors_title".localized }
+    static var noFloorsSubtitle: String { "no_floors_subtitle".localized }
+    static var noAgentsTitle: String { "no_agents_title".localized }
+    static var noAgentsSubtitle: String { "no_agents_subtitle".localized }
+    static var selectFloorTitle: String { "select_floor_title".localized }
+    static var selectFloorSubtitle: String { "select_floor_subtitle".localized }
+
+    // MARK: - Menu Bar
+    static var agentsNeedAttention: String { "agents_need_attention".localized }
+    static var allSmooth: String { "all_smooth".localized }
+    static var quit: String { "quit".localized }
+
+    // MARK: - Settings
+    static var settings: String { "settings".localized }
+    static var command: String { "command".localized }
+    static var configPath: String { "config_path".localized }
+    static var resumeArg: String { "resume_arg".localized }
+
+    // MARK: - Terminal
+    static var back: String { "back".localized }
+    static var terminalTheme: String { "terminal_theme".localized }
+
+    // MARK: - Notifications
+    static var notifNeedsInput: String { "notif_needs_input".localized }
+    static var notifError: String { "notif_error".localized }
+}
+
+extension String {
+    var localized: String {
+        // Determine preferred language
+        let lang = UserDefaults.standard.stringArray(forKey: "AppleLanguages")?.first ?? "zh-Hans"
+        let langCode = lang.hasPrefix("zh") ? "zh-hans" : "en"
+
+        // Find the .lproj bundle for the language
+        if let path = Bundle.module.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: langCode),
+           let bundle = Bundle(url: URL(fileURLWithPath: path).deletingLastPathComponent()) {
+            let value = NSLocalizedString(self, bundle: bundle, comment: "")
+            if value != self { return value }
+        }
+
+        // Fallback: try direct lproj
+        if let lprojPath = Bundle.module.path(forResource: langCode, ofType: "lproj"),
+           let bundle = Bundle(path: lprojPath) {
+            let value = NSLocalizedString(self, bundle: bundle, comment: "")
+            if value != self { return value }
+        }
+
+        // Final fallback
+        return NSLocalizedString(self, bundle: Bundle.module, comment: "")
+    }
+}

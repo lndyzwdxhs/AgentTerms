@@ -1,0 +1,19 @@
+.build/
+.swiftpm/
+*.xcodeproj/xcuserdata/
+DerivedData/
+AgentTerms.app/
+*.icns
+*.iconset/
+
+# macOS
+.DS_Store
+*.dSYM/
+
+# IDE
+.vscode/
+.idea/
+*.xcworkspace/
+
+# Generated images (keep logo source only)
+AppIcon.iconset/

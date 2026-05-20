@@ -1,0 +1,75 @@
+/* General */
+"cancel" = "取消";
+"create" = "创建";
+"delete" = "删除";
+"save" = "保存";
+"filter" = "筛选";
+
+/* Workspace */
+"workspaces" = "工作区";
+"new_workspace" = "新建工作区";
+"new_workspace_desc" = "选择一个 Git 仓库目录作为此工作区的基础。";
+"valid_git_repo" = "有效的 Git 仓库";
+"not_git_repo" = "不是 Git 仓库";
+"create_workspace" = "创建工作区";
+"delete_workspace" = "删除工作区";
+"browse" = "浏览...";
+"repo_path" = "仓库路径";
+
+/* Floor */
+"new_floor" = "新建楼层";
+"new_floor_desc" = "创建一个 Git Worktree 用于隔离开发。";
+"create_floor" = "创建楼层";
+"delete_floor" = "删除楼层";
+"no_floors" = "暂无楼层";
+"select_branch" = "选择分支...";
+"new_branch" = "或创建新分支";
+"floor_name" = "楼层名称";
+"branch" = "分支";
+"floors" = "楼层";
+
+/* Agent */
+"new_agent" = "新建 Agent";
+"start_agent" = "启动 Agent";
+"delete_agent" = "删除 Agent";
+"open_terminal" = "打开终端";
+"no_agents" = "暂无 Agent";
+"task_description" = "任务描述";
+"ai_tool" = "AI 工具";
+
+/* Status */
+"status_running" = "运行中 🏃";
+"status_needs_input" = "举手中 🙋";
+"status_idle" = "空闲 😴";
+"status_error" = "错误";
+"status_unknown" = "未知";
+
+/* Empty States */
+"welcome_title" = "欢迎使用 Mast";
+"welcome_subtitle" = "创建你的第一个工作区来开始管理 AI Agent。";
+"no_floors_title" = "暂无楼层";
+"no_floors_subtitle" = "添加一个楼层来组织你的开发任务。";
+"no_agents_title" = "暂无 Agent";
+"no_agents_subtitle" = "启动一个 Agent 开始编码。";
+"select_floor_title" = "选择楼层";
+"select_floor_subtitle" = "从侧边栏选择一个工作区查看楼层。";
+
+/* Menu Bar */
+"agents_need_attention" = "个 Agent 需要关注";
+"all_smooth" = "所有 Agent 运行正常";
+"quit" = "退出 AgentTerms";
+
+/* Settings */
+"settings" = "设置";
+"command" = "启动命令";
+"config_path" = "配置路径";
+"resume_arg" = "恢复参数";
+
+/* Terminal */
+"back" = "返回";
+"terminal_theme" = "终端主题";
+
+/* Notifications */
+"notif_needs_input" = "🙋 Agent 举手了";
+"notif_idle" = "Agent 已空闲";
+"notif_error" = "Agent 出错";

@@ -1,0 +1,75 @@
+/* General */
+"cancel" = "Cancel";
+"create" = "Create";
+"delete" = "Delete";
+"save" = "Save";
+"filter" = "Filter";
+
+/* Workspace */
+"workspaces" = "Workspaces";
+"new_workspace" = "New Workspace";
+"new_workspace_desc" = "Select a git repository directory as the base for this workspace.";
+"valid_git_repo" = "Valid git repository";
+"not_git_repo" = "Not a git repository";
+"create_workspace" = "Create Workspace";
+"delete_workspace" = "Delete Workspace";
+"browse" = "Browse...";
+"repo_path" = "Repository path";
+
+/* Floor */
+"new_floor" = "New Floor";
+"new_floor_desc" = "Creates a git worktree for isolated development.";
+"create_floor" = "Create Floor";
+"delete_floor" = "Delete Floor";
+"no_floors" = "No Floors";
+"select_branch" = "Select branch...";
+"new_branch" = "Or create new branch";
+"floor_name" = "Floor name";
+"branch" = "Branch";
+"floors" = "Floors";
+
+/* Agent */
+"new_agent" = "New Agent";
+"start_agent" = "Start Agent";
+"delete_agent" = "Delete Agent";
+"open_terminal" = "Open Terminal";
+"no_agents" = "No Agents";
+"task_description" = "Task Description";
+"ai_tool" = "AI Tool";
+
+/* Status */
+"status_running" = "Running 🏃";
+"status_needs_input" = "Hand Up 🙋";
+"status_idle" = "Idle 😴";
+"status_error" = "Error";
+"status_unknown" = "Unknown";
+
+/* Empty States */
+"welcome_title" = "Welcome to Mast";
+"welcome_subtitle" = "Create your first workspace to start managing AI agents.";
+"no_floors_title" = "No Floors Yet";
+"no_floors_subtitle" = "Add a floor to organize your development tasks.";
+"no_agents_title" = "No Agents Yet";
+"no_agents_subtitle" = "Start an agent to begin coding.";
+"select_floor_title" = "Select a Floor";
+"select_floor_subtitle" = "Choose a workspace from the sidebar.";
+
+/* Menu Bar */
+"agents_need_attention" = "agent(s) need attention";
+"all_smooth" = "All agents running smoothly";
+"quit" = "Quit AgentTerms";
+
+/* Settings */
+"settings" = "Settings";
+"command" = "Command";
+"config_path" = "Config Path";
+"resume_arg" = "Resume Arg";
+
+/* Terminal */
+"back" = "Back";
+"terminal_theme" = "Terminal Theme";
+
+/* Notifications */
+"notif_needs_input" = "🙋 Agent has a question";
+"notif_idle" = "Agent is idle";
+"notif_error" = "Agent error";
