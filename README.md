@@ -1,6 +1,12 @@
 # AgentTerms
 
-A macOS native command center for managing multiple concurrent AI coding agents (Claude Code, Codex, Gemini, etc.) — built entirely with AI.
+<p align="center">
+  <img src="logo.png" width="128" height="128" alt="AgentTerms Logo">
+</p>
+
+<p align="center">
+  A macOS native command center for managing multiple concurrent AI coding agents (Claude Code, Codex, Gemini, etc.) — built entirely with AI.
+</p>
 
 ## Why AgentTerms?
 
