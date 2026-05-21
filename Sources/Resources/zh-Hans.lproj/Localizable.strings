@@ -73,3 +73,9 @@
 "notif_needs_input" = "🙋 Agent 举手了";
 "notif_idle" = "Agent 已空闲";
 "notif_error" = "Agent 出错";
+
+"delete_worktree" = "同时删除 Git Worktree 目录";
+"uncommitted_warning" = "该目录存在未提交的代码修改！";
+"force_delete_title" = "强制删除";
+"force_delete" = "强制删除";
+"force_delete_message" = "该楼层有未提交的代码修改，强制删除后数据无法恢复，确定继续？";

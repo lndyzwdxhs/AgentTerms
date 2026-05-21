@@ -253,3 +253,104 @@ struct CreateAgentSheet: View {
         .frame(width: 400)
     }
 }
+
+struct DeleteFloorSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    let floor: Floor
+    let workspaceID: UUID
+    @State private var removeWorktree = true
+    @State private var hasUncommitted = false
+    @State private var showForceConfirm = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.orange)
+
+            Text(L10n.deleteFloor)
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(L10n.floorName + ":")
+                        .foregroundStyle(.secondary)
+                    Text(floor.name)
+                        .fontWeight(.medium)
+                }
+                HStack {
+                    Text(L10n.branch + ":")
+                        .foregroundStyle(.secondary)
+                    Text(floor.branch)
+                        .fontWeight(.medium)
+                }
+                HStack {
+                    Text("Agents:")
+                        .foregroundStyle(.secondary)
+                    Text("\(floor.agents.count)")
+                        .fontWeight(.medium)
+                }
+            }
+            .font(.body)
+
+            Divider()
+
+            Toggle(isOn: $removeWorktree) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.deleteWorktree)
+                        .font(.body)
+                    Text(floor.worktreePath)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+
+            if hasUncommitted && removeWorktree {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.red)
+                    Text(L10n.uncommittedWarning)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Button(L10n.cancel) { dismiss() }
+                    .keyboardShortcut(.escape)
+                Button(L10n.delete, role: .destructive) {
+                    if hasUncommitted && removeWorktree {
+                        showForceConfirm = true
+                    } else {
+                        performDelete()
+                    }
+                }
+                .keyboardShortcut(.return)
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+            }
+        }
+        .padding(24)
+        .frame(width: 400)
+        .onAppear {
+            hasUncommitted = GitService.hasUncommittedChanges(worktreePath: floor.worktreePath)
+        }
+        .alert(L10n.forceDeleteTitle, isPresented: $showForceConfirm) {
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.forceDelete, role: .destructive) {
+                performDelete()
+            }
+        } message: {
+            Text(L10n.forceDeleteMessage)
+        }
+    }
+
+    private func performDelete() {
+        appState.removeFloor(id: floor.id, from: workspaceID, removeWorktree: removeWorktree)
+        dismiss()
+    }
+}

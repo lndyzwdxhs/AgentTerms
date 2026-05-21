@@ -73,3 +73,9 @@
 "notif_needs_input" = "🙋 Agent has a question";
 "notif_idle" = "Agent is idle";
 "notif_error" = "Agent error";
+
+"delete_worktree" = "Also delete Git Worktree directory";
+"uncommitted_warning" = "This directory has uncommitted changes!";
+"force_delete_title" = "Force Delete";
+"force_delete" = "Force Delete";
+"force_delete_message" = "This floor has uncommitted code changes. Force deleting will permanently lose data. Continue?";

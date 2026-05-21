@@ -64,6 +64,13 @@ enum L10n {
     static var allSmooth: String { "all_smooth".localized }
     static var quit: String { "quit".localized }
 
+    // MARK: - Delete Floor
+    static var deleteWorktree: String { "delete_worktree".localized }
+    static var uncommittedWarning: String { "uncommitted_warning".localized }
+    static var forceDeleteTitle: String { "force_delete_title".localized }
+    static var forceDelete: String { "force_delete".localized }
+    static var forceDeleteMessage: String { "force_delete_message".localized }
+
     // MARK: - Settings
     static var settings: String { "settings".localized }
     static var command: String { "command".localized }

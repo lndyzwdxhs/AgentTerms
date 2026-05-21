@@ -72,13 +72,10 @@ final class AppState {
         guard let idx = workspaces.firstIndex(where: { $0.id == workspaceID }) else { return }
         let workspace = workspaces[idx]
 
-        // Sanitize floor name for filesystem
-        let sanitizedName = name
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-            .replacingOccurrences(of: "/", with: "-")
+        // Use branch name for directory (replace / with -)
+        let dirName = branch.replacingOccurrences(of: "/", with: "-")
 
-        let worktreePath = "\(workspace.worktreeBaseDir)/\(sanitizedName)"
+        let worktreePath = "\(workspace.worktreeBaseDir)/\(dirName)"
 
         // Create git worktree
         try GitService.createWorktree(
@@ -94,11 +91,17 @@ final class AppState {
         saveState()
     }
 
-    func removeFloor(id: UUID, from workspaceID: UUID) {
+    func removeFloor(id: UUID, from workspaceID: UUID, removeWorktree: Bool = true) {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }) else { return }
         if let floor = workspaces[wsIdx].floors.first(where: { $0.id == id }) {
-            // Remove git worktree
-            try? GitService.removeWorktree(repoPath: workspaces[wsIdx].repoPath, path: floor.worktreePath)
+            // Clean up all agent terminals
+            for agent in floor.agents {
+                TerminalManager.shared.remove(agentID: agent.id)
+            }
+            // Remove git worktree if requested
+            if removeWorktree {
+                try? GitService.removeWorktree(repoPath: workspaces[wsIdx].repoPath, path: floor.worktreePath)
+            }
         }
         workspaces[wsIdx].floors.removeAll { $0.id == id }
         if selectedFloorID == id {

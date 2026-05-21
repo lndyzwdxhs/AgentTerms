@@ -8,6 +8,7 @@ struct FloorSwitcher3DView: View {
     @State private var appeared = false
     @State private var selectedIndex: Int = 0
     @Binding var showCreateFloor: Bool
+    @State private var floorToDelete: Floor?
 
     private var floors: [Floor] {
         appState.selectedWorkspace?.floors ?? []
@@ -56,6 +57,11 @@ struct FloorSwitcher3DView: View {
                             // Single click: select
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedIndex = index
+                            }
+                        }
+                        .contextMenu {
+                            Button(L10n.deleteFloor, role: .destructive) {
+                                floorToDelete = floor
                             }
                         }
                     }
@@ -109,6 +115,11 @@ struct FloorSwitcher3DView: View {
                         selectedIndex = newIndex
                     }
                 }
+            }
+        }
+        .sheet(item: $floorToDelete) { floor in
+            if let wsID = appState.selectedWorkspaceID {
+                DeleteFloorSheet(floor: floor, workspaceID: wsID)
             }
         }
     }

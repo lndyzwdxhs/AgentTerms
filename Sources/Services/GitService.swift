@@ -79,6 +79,13 @@ struct GitService {
         }
     }
 
+    /// Check if a worktree has uncommitted changes
+    static func hasUncommittedChanges(worktreePath: String) -> Bool {
+        let (output, exitCode) = runGit(args: ["status", "--porcelain"], in: worktreePath)
+        guard exitCode == 0 else { return false }
+        return !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     // MARK: - Private
 
     private static func runGit(args: [String], in directory: String) -> (output: String, exitCode: Int32) {
