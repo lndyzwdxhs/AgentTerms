@@ -34,8 +34,9 @@
 "delete_agent" = "删除 Agent";
 "open_terminal" = "打开终端";
 "no_agents" = "暂无 Agent";
-"task_description" = "任务描述";
-"ai_tool" = "AI 工具";
+"task_description" = "Agent 名称";
+"agent_name" = "Agent 名称";
+"ai_tool" = "Agent 类型";
 
 /* Status */
 "status_running" = "运行中 🏃";

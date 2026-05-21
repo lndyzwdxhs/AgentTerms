@@ -27,6 +27,11 @@ class TerminalContainerView: NSView {
 
         currentTerminal = terminal
         currentAgentID = agentID
+
+        // Focus the terminal so keyboard input goes to it
+        DispatchQueue.main.async {
+            terminal.window?.makeFirstResponder(terminal)
+        }
     }
 }
 

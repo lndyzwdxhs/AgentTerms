@@ -97,10 +97,10 @@ struct WorkspaceRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            // Colored icon
-            Image(systemName: "terminal.fill")
+            // Laptop icon with user-chosen color
+            Image(systemName: "laptopcomputer")
                 .font(.body)
-                .foregroundStyle(workspaceColor)
+                .foregroundStyle(colorForWorkspace)
                 .frame(width: 24)
 
             // Name
@@ -122,12 +122,11 @@ struct WorkspaceRow: View {
                     .background(.red, in: Capsule())
             }
 
-            // Floor/agent count
-            let agentCount = workspace.floors.flatMap(\.agents).count
-            HStack(spacing: 2) {
-                Image(systemName: "square.stack.3d.up")
+            // Floor count
+            HStack(spacing: 3) {
+                Image(systemName: "square.3.layers.3d")
                     .font(.caption2)
-                Text("\(agentCount)")
+                Text("\(workspace.floors.count)")
                     .font(.caption2)
             }
             .foregroundStyle(.secondary)
@@ -135,11 +134,15 @@ struct WorkspaceRow: View {
         .padding(.vertical, 3)
     }
 
-    private var workspaceColor: Color {
-        switch workspace.aggregatedStatus {
-        case .needsInput, .error: return .red
-        case .running: return .green
-        default: return .secondary
+    private var colorForWorkspace: Color {
+        switch workspace.color {
+        case .red: return .red
+        case .orange: return .orange
+        case .yellow: return .yellow
+        case .green: return .green
+        case .blue: return .blue
+        case .purple: return .purple
+        case .pink: return .pink
         }
     }
 }

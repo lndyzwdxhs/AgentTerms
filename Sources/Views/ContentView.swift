@@ -44,16 +44,19 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .automatic) {
                     if let floor = appState.selectedFloor {
-                        HStack(spacing: 3) {
-                            Image(systemName: "arrow.triangle.branch")
-                                .font(.caption2)
-                            Text(floor.branch)
-                                .font(.caption)
+                        Button {
+                            openInVSCode(path: floor.worktreePath)
+                        } label: {
+                            if let nsImage = loadBundleImage("vscode") {
+                                Image(nsImage: nsImage)
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Image(systemName: "curlybraces")
+                                    .font(.system(size: 13, weight: .medium))
+                            }
                         }
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(.quaternary, in: Capsule())
+                        .help("在 VS Code 中打开")
                     }
                 }
             }
@@ -63,6 +66,26 @@ struct ContentView: View {
             .sheet(isPresented: $showCreateAgent) {
                 CreateAgentSheet()
             }
+    }
+    private func openInVSCode(path: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", "Visual Studio Code", path]
+        try? process.run()
+    }
+
+    private func loadBundleImage(_ name: String) -> NSImage? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "png") else {
+            // Try resource bundle
+            let bundleName = "AgentTerms_AgentTerms"
+            if let resourceBundle = Bundle.main.url(forResource: bundleName, withExtension: "bundle"),
+               let bundle = Bundle(url: resourceBundle),
+               let imgURL = bundle.url(forResource: name, withExtension: "png") {
+                return NSImage(contentsOf: imgURL)
+            }
+            return nil
+        }
+        return NSImage(contentsOf: url)
     }
 }
 
@@ -90,6 +113,17 @@ struct FloorToolbarView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                HStack(spacing: 3) {
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(.caption2)
+                    Text(floor.branch)
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(.quaternary, in: Capsule())
 
             } else if appState.selectedWorkspace != nil {
                 Button {

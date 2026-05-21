@@ -34,8 +34,9 @@
 "delete_agent" = "Delete Agent";
 "open_terminal" = "Open Terminal";
 "no_agents" = "No Agents";
-"task_description" = "Task Description";
-"ai_tool" = "AI Tool";
+"task_description" = "Agent Name";
+"agent_name" = "Agent Name";
+"ai_tool" = "Agent Type";
 
 /* Status */
 "status_running" = "Running 🏃";

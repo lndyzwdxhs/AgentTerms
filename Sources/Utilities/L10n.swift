@@ -40,6 +40,7 @@ enum L10n {
     static var openTerminal: String { "open_terminal".localized }
     static var noAgents: String { "no_agents".localized }
     static var taskDescription: String { "task_description".localized }
+    static var agentName: String { "agent_name".localized }
     static var aiTool: String { "ai_tool".localized }
 
     // MARK: - Status

@@ -46,9 +46,9 @@ final class AppState {
 
     // MARK: - Workspace Operations
 
-    func addWorkspace(repoPath: String) {
-        let name = (repoPath as NSString).lastPathComponent
-        let workspace = Workspace(name: name, repoPath: repoPath)
+    func addWorkspace(repoPath: String, color: WorkspaceColor = .orange, name: String? = nil) {
+        let wsName = name ?? (repoPath as NSString).lastPathComponent
+        let workspace = Workspace(name: wsName, repoPath: repoPath, color: color)
         // Create worktree base directory
         let baseDir = workspace.worktreeBaseDir
         try? FileManager.default.createDirectory(atPath: baseDir, withIntermediateDirectories: true)
