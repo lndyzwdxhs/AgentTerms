@@ -47,7 +47,7 @@ struct AgentGridView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
-                .frame(height: 70)
+                .frame(height: 88)
 
                 // Bottom: Terminal area
                 if let agentID = appState.selectedAgentID,
@@ -103,7 +103,7 @@ struct AgentGridView: View {
     }
 }
 
-/// Modern agent card - clean, pill-like tabs
+/// Modern agent card — left accent bar style
 struct AgentCard: View {
     let agent: Agent
     let index: Int
@@ -111,42 +111,43 @@ struct AgentCard: View {
     @State private var isHovered = false
 
     var body: some View {
-        HStack(spacing: 10) {
-            // Status dot
-            Circle()
+        HStack(spacing: 0) {
+            // Left status accent bar
+            RoundedRectangle(cornerRadius: 2)
                 .fill(agent.status.color)
-                .frame(width: 8, height: 8)
+                .frame(width: isSelected ? 4 : 3, height: 38)
                 .shadow(color: agent.status.color.opacity(0.4), radius: 3)
-                .opacity(agent.status == .running ? (isHovered ? 1.0 : 0.7) : 1.0)
+                .padding(.leading, 10)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(agent.taskDescription.isEmpty ? "Agent" : agent.taskDescription)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                    .foregroundStyle(isSelected ? .primary : .secondary)
-                    .lineLimit(1)
-
-                HStack(spacing: 4) {
-                    Text(agent.status.label)
-                        .foregroundStyle(agent.status.color)
-                    Text("•")
+            VStack(alignment: .leading, spacing: 5) {
+                // Row 1: Name + shortcut
+                HStack {
+                    Text(agent.taskDescription.isEmpty ? "Agent" : agent.taskDescription)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
                     Text("⌘\(index)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.tertiary)
                 }
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.tertiary)
-            }
 
-            Spacer(minLength: 0)
+                // Row 2: Status + tool name
+                HStack {
+                    Text(agent.status.label)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(agent.status.color)
+                    Spacer(minLength: 4)
+                    Text(agent.tool.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(.leading, 10)
+            .padding(.trailing, 14)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .frame(width: 160, height: 46)
-        .overlay(alignment: .topTrailing) {
-            Text(agent.tool.displayName)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.tertiary)
-                .padding(.top, 5)
-                .padding(.trailing, 8)
-        }
+        .padding(.vertical, 12)
+        .frame(width: 200, height: 64)
         .background {
             if isSelected {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -168,7 +169,6 @@ struct AgentCard: View {
         .onHover { hovering in
             isHovered = hovering
         }
-        // Subtle scale effect on click
         .scaleEffect(isHovered && !isSelected ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
@@ -183,9 +183,9 @@ struct AddAgentCard: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.secondary)
-                .frame(width: 40, height: 46)
+                .frame(width: 48, height: 64)
                 .background {
                     if isHovered {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
