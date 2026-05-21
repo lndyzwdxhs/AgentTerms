@@ -9,6 +9,34 @@ struct AgentGridView: View {
         appState.selectedFloor
     }
 
+    /// Auto-select first agent and pre-warm all terminals
+    private func autoSelectAndWarmTerminals(floor: Floor) {
+        // Auto-select first agent if none selected or current selection not in this floor
+        if appState.selectedAgentID == nil ||
+           !floor.agents.contains(where: { $0.id == appState.selectedAgentID }) {
+            appState.selectedAgentID = floor.agents.first?.id
+        }
+
+        // Pre-warm terminals for all agents in background
+        for agent in floor.agents {
+            if !TerminalManager.shared.hasTerminal(for: agent.id) {
+                _ = TerminalManager.shared.terminal(
+                    for: agent.id,
+                    theme: .dracula,
+                    command: settings.command(for: agent.tool),
+                    workingDirectory: agent.workingDirectory,
+                    configPath: settings.configPath(for: agent.tool),
+                    sessionID: agent.sessionID,
+                    resumeArg: settings.resumeArg(for: agent.tool),
+                    appState: appState,
+                    onProcessExit: {
+                        appState.updateAgentStatus(agentID: agent.id, status: .idle)
+                    }
+                )
+            }
+        }
+    }
+
     var body: some View {
         if let floor, !floor.agents.isEmpty {
             VStack(spacing: 0) {
@@ -96,6 +124,14 @@ struct AgentGridView: View {
             }
             .sheet(isPresented: $showCreateAgent) {
                 CreateAgentSheet()
+            }
+            .onAppear {
+                autoSelectAndWarmTerminals(floor: floor)
+            }
+            .onChange(of: appState.selectedFloorID) { _, _ in
+                if let floor = appState.selectedFloor, !floor.agents.isEmpty {
+                    autoSelectAndWarmTerminals(floor: floor)
+                }
             }
         } else {
             EmptyStateView(type: .noAgents)
