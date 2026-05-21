@@ -13,7 +13,7 @@ final class NotificationService {
             isAvailable = true
             requestPermission()
         } else {
-            print("[Mast] Notifications unavailable (not running in app bundle)")
+            print("[AgentTerms] Notifications unavailable (not running in app bundle)")
         }
     }
 
@@ -21,7 +21,7 @@ final class NotificationService {
         guard isAvailable else { return }
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error {
-                print("[Mast] Notification permission error: \(error)")
+                print("[AgentTerms] Notification permission error: \(error)")
             }
         }
     }

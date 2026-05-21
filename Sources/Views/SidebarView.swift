@@ -45,10 +45,10 @@ struct SidebarView: View {
                                 appState.selectedWorkspaceID = workspace.id
                                 showCreateFloor = true
                             } label: {
-                                Label("Add Floor", systemImage: "plus")
+                                Label(L10n.newFloor, systemImage: "plus")
                             }
                             Divider()
-                            Button("Delete Workspace", role: .destructive) {
+                            Button(L10n.deleteWorkspace, role: .destructive) {
                                 appState.removeWorkspace(id: workspace.id)
                             }
                         }

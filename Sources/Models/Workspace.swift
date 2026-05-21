@@ -14,9 +14,9 @@ struct Workspace: Identifiable, Codable, Hashable {
     }
 
     /// Directory where all worktrees for this workspace are stored
-    /// e.g. /root/repoA → /root/repoA-mast/
+    /// e.g. /root/repoA → /root/repoA-at/
     var worktreeBaseDir: String {
-        "\(repoPath)-mast"
+        "\(repoPath)-at"
     }
 
     var aggregatedStatus: AgentStatus {

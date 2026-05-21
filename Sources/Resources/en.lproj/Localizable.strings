@@ -45,7 +45,7 @@
 "status_unknown" = "Unknown";
 
 /* Empty States */
-"welcome_title" = "Welcome to Mast";
+"welcome_title" = "Welcome to AgentTerms";
 "welcome_subtitle" = "Create your first workspace to start managing AI agents.";
 "no_floors_title" = "No Floors Yet";
 "no_floors_subtitle" = "Add a floor to organize your development tasks.";

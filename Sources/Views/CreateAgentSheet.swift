@@ -297,16 +297,15 @@ struct DeleteFloorSheet: View {
 
             Divider()
 
-            Toggle(isOn: $removeWorktree) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.deleteWorktree)
-                        .font(.body)
-                    Text(floor.worktreePath)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
+            Toggle(L10n.deleteWorktree, isOn: $removeWorktree)
+
+            if removeWorktree {
+                Text(floor.worktreePath)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+                    .truncationMode(.head)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             if hasUncommitted && removeWorktree {

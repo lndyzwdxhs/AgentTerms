@@ -64,7 +64,7 @@ final class Settings {
             let data = try encoder.encode(SettingsData(toolConfigs: toolConfigs, language: language))
             try data.write(to: settingsURL, options: .atomic)
         } catch {
-            print("[Mast] Failed to save settings: \(error)")
+            print("[AgentTerms] Failed to save settings: \(error)")
         }
     }
 

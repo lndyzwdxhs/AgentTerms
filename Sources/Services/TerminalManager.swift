@@ -133,7 +133,7 @@ final class TerminalManager {
 
         // Record existing files (may be empty if dir doesn't exist yet)
         let existingFiles = Set(jsonlFiles(in: projectDir))
-        print("[Mast] Session detection started for agent \(agentID). Dir: \(projectDir.path), existing: \(existingFiles.count)")
+        print("[AgentTerms] Session detection started for agent \(agentID). Dir: \(projectDir.path), existing: \(existingFiles.count)")
 
         var attempts = 0
         // No timeout — keep polling until session is detected or terminal is removed
@@ -147,7 +147,7 @@ final class TerminalManager {
                 // Found new session file — extract session ID from filename
                 let sessionID = (newFile as NSString).deletingPathExtension
                 let projPath = projectDir.path
-                print("[Mast] Session detected: \(sessionID) for agent \(agentID)")
+                print("[AgentTerms] Session detected: \(sessionID) for agent \(agentID)")
                 DispatchQueue.main.async {
                     appState.bindSession(agentID: agentID, sessionID: sessionID, projectPath: projPath)
                 }

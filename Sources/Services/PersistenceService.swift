@@ -19,7 +19,7 @@ struct PersistenceService {
             let data = try encoder.encode(workspaces)
             try data.write(to: configURL, options: .atomic)
         } catch {
-            print("[Mast] Failed to save config: \(error)")
+            print("[AgentTerms] Failed to save config: \(error)")
         }
     }
 
@@ -29,7 +29,7 @@ struct PersistenceService {
             let data = try Data(contentsOf: configURL)
             return try JSONDecoder().decode([Workspace].self, from: data)
         } catch {
-            print("[Mast] Failed to load config: \(error)")
+            print("[AgentTerms] Failed to load config: \(error)")
             return []
         }
     }

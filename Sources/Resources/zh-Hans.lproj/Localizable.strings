@@ -45,7 +45,7 @@
 "status_unknown" = "未知";
 
 /* Empty States */
-"welcome_title" = "欢迎使用 Mast";
+"welcome_title" = "欢迎使用 AgentTerms";
 "welcome_subtitle" = "创建你的第一个工作区来开始管理 AI Agent。";
 "no_floors_title" = "暂无楼层";
 "no_floors_subtitle" = "添加一个楼层来组织你的开发任务。";
