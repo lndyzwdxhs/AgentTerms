@@ -3,7 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @State private var showCreateWorkspace = false
-    @State private var showCreateFloor = false
+    @State private var showCreateSnapshot = false
     @State private var searchText = ""
 
     var body: some View {
@@ -43,9 +43,9 @@ struct SidebarView: View {
                         .contextMenu {
                             Button {
                                 appState.selectedWorkspaceID = workspace.id
-                                showCreateFloor = true
+                                showCreateSnapshot = true
                             } label: {
-                                Label(L10n.newFloor, systemImage: "plus")
+                                Label(L10n.newSnapshot, systemImage: "plus")
                             }
                             Divider()
                             Button(L10n.deleteWorkspace, role: .destructive) {
@@ -78,8 +78,8 @@ struct SidebarView: View {
         .sheet(isPresented: $showCreateWorkspace) {
             CreateWorkspaceSheet()
         }
-        .sheet(isPresented: $showCreateFloor) {
-            CreateFloorSheet()
+        .sheet(isPresented: $showCreateSnapshot) {
+            CreateSnapshotSheet()
         }
     }
 
@@ -87,7 +87,7 @@ struct SidebarView: View {
         if searchText.isEmpty { return appState.workspaces }
         return appState.workspaces.filter {
             $0.name.localizedCaseInsensitiveContains(searchText) ||
-            $0.floors.contains { $0.name.localizedCaseInsensitiveContains(searchText) }
+            $0.snapshots.contains { $0.name.localizedCaseInsensitiveContains(searchText) }
         }
     }
 }
@@ -111,7 +111,7 @@ struct WorkspaceRow: View {
             Spacer()
 
             // Notification badge (agents needing attention)
-            let attentionCount = workspace.floors.flatMap(\.agents).filter { $0.status == .needsInput || $0.status == .error }.count
+            let attentionCount = workspace.snapshots.flatMap(\.agents).filter { $0.status == .needsInput || $0.status == .error }.count
             if attentionCount > 0 {
                 Text("\(attentionCount)")
                     .font(.caption2)
@@ -122,11 +122,11 @@ struct WorkspaceRow: View {
                     .background(.red, in: Capsule())
             }
 
-            // Floor count
+            // Snapshot count
             HStack(spacing: 3) {
                 Image(systemName: "square.3.layers.3d")
                     .font(.caption2)
-                Text("\(workspace.floors.count)")
+                Text("\(workspace.snapshots.count)")
                     .font(.caption2)
             }
             .foregroundStyle(.secondary)

@@ -21,17 +21,17 @@ enum L10n {
     static var browse: String { "browse".localized }
     static var repoPath: String { "repo_path".localized }
 
-    // MARK: - Floor
-    static var newFloor: String { "new_floor".localized }
-    static var newFloorDesc: String { "new_floor_desc".localized }
-    static var createFloor: String { "create_floor".localized }
-    static var deleteFloor: String { "delete_floor".localized }
-    static var noFloors: String { "no_floors".localized }
+    // MARK: - Snapshot
+    static var newSnapshot: String { "new_snapshot".localized }
+    static var newSnapshotDesc: String { "new_snapshot_desc".localized }
+    static var createSnapshot: String { "create_snapshot".localized }
+    static var deleteSnapshot: String { "delete_snapshot".localized }
+    static var noSnapshots: String { "no_snapshots".localized }
     static var selectBranch: String { "select_branch".localized }
     static var newBranch: String { "new_branch".localized }
-    static var floorName: String { "floor_name".localized }
+    static var snapshotName: String { "snapshot_name".localized }
     static var branch: String { "branch".localized }
-    static var floors: String { "floors".localized }
+    static var snapshots: String { "snapshots".localized }
 
     // MARK: - Agent
     static var newAgent: String { "new_agent".localized }
@@ -53,19 +53,19 @@ enum L10n {
     // MARK: - Empty States
     static var welcomeTitle: String { "welcome_title".localized }
     static var welcomeSubtitle: String { "welcome_subtitle".localized }
-    static var noFloorsTitle: String { "no_floors_title".localized }
-    static var noFloorsSubtitle: String { "no_floors_subtitle".localized }
+    static var noSnapshotsTitle: String { "no_snapshots_title".localized }
+    static var noSnapshotsSubtitle: String { "no_snapshots_subtitle".localized }
     static var noAgentsTitle: String { "no_agents_title".localized }
     static var noAgentsSubtitle: String { "no_agents_subtitle".localized }
-    static var selectFloorTitle: String { "select_floor_title".localized }
-    static var selectFloorSubtitle: String { "select_floor_subtitle".localized }
+    static var selectSnapshotTitle: String { "select_snapshot_title".localized }
+    static var selectSnapshotSubtitle: String { "select_snapshot_subtitle".localized }
 
     // MARK: - Menu Bar
     static var agentsNeedAttention: String { "agents_need_attention".localized }
     static var allSmooth: String { "all_smooth".localized }
     static var quit: String { "quit".localized }
 
-    // MARK: - Delete Floor
+    // MARK: - Delete Snapshot
     static var deleteWorktree: String { "delete_worktree".localized }
     static var uncommittedWarning: String { "uncommitted_warning".localized }
     static var forceDeleteTitle: String { "force_delete_title".localized }

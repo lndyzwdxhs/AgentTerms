@@ -5,20 +5,20 @@ struct AgentGridView: View {
     @Environment(Settings.self) private var settings
     @State private var showCreateAgent = false
 
-    private var floor: Floor? {
-        appState.selectedFloor
+    private var snapshot: Snapshot? {
+        appState.selectedSnapshot
     }
 
     /// Auto-select first agent and pre-warm all terminals
-    private func autoSelectAndWarmTerminals(floor: Floor) {
-        // Auto-select first agent if none selected or current selection not in this floor
+    private func autoSelectAndWarmTerminals(snapshot: Snapshot) {
+        // Auto-select first agent if none selected or current selection not in this snapshot
         if appState.selectedAgentID == nil ||
-           !floor.agents.contains(where: { $0.id == appState.selectedAgentID }) {
-            appState.selectedAgentID = floor.agents.first?.id
+           !snapshot.agents.contains(where: { $0.id == appState.selectedAgentID }) {
+            appState.selectedAgentID = snapshot.agents.first?.id
         }
 
         // Pre-warm terminals for all agents in background
-        for agent in floor.agents {
+        for agent in snapshot.agents {
             if !TerminalManager.shared.hasTerminal(for: agent.id) {
                 _ = TerminalManager.shared.terminal(
                     for: agent.id,
@@ -38,12 +38,12 @@ struct AgentGridView: View {
     }
 
     var body: some View {
-        if let floor, !floor.agents.isEmpty {
+        if let snapshot, !snapshot.agents.isEmpty {
             VStack(spacing: 0) {
                 // Top: Agent cards - modern segmented style
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(Array(floor.agents.enumerated()), id: \.element.id) { index, agent in
+                        ForEach(Array(snapshot.agents.enumerated()), id: \.element.id) { index, agent in
                             AgentCard(
                                 agent: agent,
                                 index: index + 1,
@@ -61,7 +61,7 @@ struct AgentGridView: View {
                                 Button(L10n.deleteAgent, role: .destructive) {
                                     if let wsID = appState.selectedWorkspaceID {
                                         TerminalManager.shared.remove(agentID: agent.id)
-                                        appState.removeAgent(id: agent.id, fromFloor: floor.id, inWorkspace: wsID)
+                                        appState.removeAgent(id: agent.id, fromSnapshot: snapshot.id, inWorkspace: wsID)
                                     }
                                 }
                             }
@@ -79,7 +79,7 @@ struct AgentGridView: View {
 
                 // Bottom: Terminal area
                 if let agentID = appState.selectedAgentID,
-                   let agent = floor.agents.first(where: { $0.id == agentID }) {
+                   let agent = snapshot.agents.first(where: { $0.id == agentID }) {
                     TerminalSwitcherView(
                         agentID: agent.id,
                         theme: .dracula,
@@ -126,11 +126,11 @@ struct AgentGridView: View {
                 CreateAgentSheet()
             }
             .onAppear {
-                autoSelectAndWarmTerminals(floor: floor)
+                autoSelectAndWarmTerminals(snapshot: snapshot)
             }
-            .onChange(of: appState.selectedFloorID) { _, _ in
-                if let floor = appState.selectedFloor, !floor.agents.isEmpty {
-                    autoSelectAndWarmTerminals(floor: floor)
+            .onChange(of: appState.selectedSnapshotID) { _, _ in
+                if let snapshot = appState.selectedSnapshot, !snapshot.agents.isEmpty {
+                    autoSelectAndWarmTerminals(snapshot: snapshot)
                 }
             }
         } else {

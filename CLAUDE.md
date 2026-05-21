@@ -20,11 +20,11 @@ AgentTerms is a macOS native app that manages multiple concurrent AI coding agen
 
 ## Key Concepts
 
-### Workspace → Floor → Agent
+### Workspace → Snapshot → Agent
 
 - **Workspace** = A Git repository (e.g. `/Users/dev/my-project`)
-- **Floor** = A Git worktree tied to a branch (isolated working copy)
-- **Agent** = An AI tool instance running in a terminal on a floor
+- **Snapshot** = A Git worktree tied to a branch (isolated working copy)
+- **Agent** = An AI tool instance running in a terminal on a snapshot
 
 ### Status Detection
 
@@ -48,7 +48,7 @@ Each agent has a `sessionID` persisted in `config.json`. On first launch, `Termi
 
 ### Configuration Files
 
-`~/.agentterms/config.json` — Workspaces, floors, agents (sessionID, projectPath, but NOT status)
+`~/.agentterms/config.json` — Workspaces, snapshots, agents (sessionID, projectPath, but NOT status)
 `~/.agentterms/settings.json` — Tool commands, config paths, resume args, language
 
 **Important:** `status` is runtime-only. It is NOT persisted. On app launch all agents start as `idle`.
@@ -73,7 +73,7 @@ Sources/
 ├── Models/
 │   ├── Agent.swift              # Agent struct + AgentStatus enum + AgentTool enum
 │   ├── AppState.swift           # @Observable app state, all mutations here
-│   ├── Floor.swift              # Floor (git worktree)
+│   ├── Snapshot.swift           # Snapshot (git worktree)
 │   ├── Settings.swift           # @Observable settings, ToolConfig struct
 │   └── Workspace.swift          # Workspace (git repo)
 ├── Services/
@@ -91,10 +91,10 @@ Sources/
 ├── Views/
 │   ├── AgentGridView.swift      # Agent cards + terminal area
 │   ├── ContentView.swift        # NavigationSplitView + toolbar
-│   ├── CreateAgentSheet.swift   # Workspace/Floor/Agent creation sheets
+│   ├── CreateAgentSheet.swift   # Workspace/Snapshot/Agent creation sheets
 │   ├── EmptyStateView.swift     # Placeholder views
-│   ├── FloorGridView.swift      # Floor grid (unused in current UI)
-│   ├── FloorSwitcherView.swift  # 3D Mission Control floor switcher
+│   ├── SnapshotGridView.swift   # Snapshot grid (unused in current UI)
+│   ├── SnapshotSwitcher3DView.swift  # 3D Mission Control snapshot switcher
 │   ├── SettingsView.swift       # Settings form
 │   ├── SidebarView.swift        # Left sidebar (workspace list)
 │   └── TerminalFullView.swift   # Full-screen terminal view

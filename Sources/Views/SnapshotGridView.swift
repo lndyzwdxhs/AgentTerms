@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Shows floors as cards within a workspace (similar to Maestri's floor bubbles)
-struct FloorGridView: View {
+/// Shows snapshots as cards within a workspace (similar to Maestri's snapshot bubbles)
+struct SnapshotGridView: View {
     @Environment(AppState.self) private var appState
     let workspace: Workspace
-    @State private var showCreateFloor = false
+    @State private var showCreateSnapshot = false
 
     private let columns = [
         GridItem(.adaptive(minimum: 220, maximum: 320), spacing: 16)
@@ -12,30 +12,30 @@ struct FloorGridView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if workspace.floors.isEmpty {
-                EmptyStateView(type: .noFloors)
+            if workspace.snapshots.isEmpty {
+                EmptyStateView(type: .noSnapshots)
             } else {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(workspace.floors) { floor in
-                            FloorCard(floor: floor)
+                        ForEach(workspace.snapshots) { snapshot in
+                            SnapshotCard(snapshot: snapshot)
                                 .onTapGesture {
-                                    appState.selectedFloorID = floor.id
+                                    appState.selectedSnapshotID = snapshot.id
                                 }
                                 .contextMenu {
                                     Button(L10n.openTerminal) {
-                                        appState.selectedFloorID = floor.id
+                                        appState.selectedSnapshotID = snapshot.id
                                     }
                                     Divider()
-                                    Button(L10n.deleteFloor, role: .destructive) {
-                                        appState.removeFloor(id: floor.id, from: workspace.id)
+                                    Button(L10n.deleteSnapshot, role: .destructive) {
+                                        appState.removeSnapshot(id: snapshot.id, from: workspace.id)
                                     }
                                 }
                         }
 
-                        // "New Floor" card
-                        NewFloorCard {
-                            showCreateFloor = true
+                        // "New Snapshot" card
+                        NewSnapshotCard {
+                            showCreateSnapshot = true
                         }
                     }
                     .padding(24)
@@ -46,43 +46,43 @@ struct FloorGridView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showCreateFloor = true
+                    showCreateSnapshot = true
                 } label: {
                     Image(systemName: "plus")
                 }
-                .help(L10n.newFloor)
+                .help(L10n.newSnapshot)
             }
 
-            // Back button when viewing from a floor
-            if appState.selectedFloorID != nil {
+            // Back button when viewing from a snapshot
+            if appState.selectedSnapshotID != nil {
                 ToolbarItem(placement: .navigation) {
                     Button {
-                        appState.selectedFloorID = nil
+                        appState.selectedSnapshotID = nil
                     } label: {
                         Image(systemName: "chevron.left")
                     }
                 }
             }
         }
-        .sheet(isPresented: $showCreateFloor) {
-            CreateFloorSheet()
+        .sheet(isPresented: $showCreateSnapshot) {
+            CreateSnapshotSheet()
         }
     }
 }
 
-struct FloorCard: View {
-    let floor: Floor
+struct SnapshotCard: View {
+    let snapshot: Snapshot
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header: name + status
             HStack {
-                Text(floor.name)
+                Text(snapshot.name)
                     .font(.headline)
                     .lineLimit(1)
                 Spacer()
                 Circle()
-                    .fill(floor.aggregatedStatus.color)
+                    .fill(snapshot.aggregatedStatus.color)
                     .frame(width: 10, height: 10)
             }
 
@@ -90,7 +90,7 @@ struct FloorCard: View {
             HStack(spacing: 4) {
                 Image(systemName: "arrow.triangle.branch")
                     .font(.caption2)
-                Text(floor.branch)
+                Text(snapshot.branch)
                     .font(.caption)
                     .lineLimit(1)
             }
@@ -99,15 +99,15 @@ struct FloorCard: View {
             Divider()
 
             // Agent summary
-            if floor.agents.isEmpty {
+            if snapshot.agents.isEmpty {
                 Text(L10n.noAgents)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             } else {
                 HStack(spacing: 12) {
-                    AgentStatusCount(count: floor.agents.filter { $0.status == .running }.count, status: .running)
-                    AgentStatusCount(count: floor.agents.filter { $0.status == .needsInput }.count, status: .needsInput)
-                    AgentStatusCount(count: floor.agents.filter { $0.status == .idle }.count, status: .idle)
+                    AgentStatusCount(count: snapshot.agents.filter { $0.status == .running }.count, status: .running)
+                    AgentStatusCount(count: snapshot.agents.filter { $0.status == .needsInput }.count, status: .needsInput)
+                    AgentStatusCount(count: snapshot.agents.filter { $0.status == .idle }.count, status: .idle)
                 }
             }
         }
@@ -116,7 +116,7 @@ struct FloorCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(floor.aggregatedStatus == .needsInput ? Color.red.opacity(0.5) : Color.clear, lineWidth: 2)
+                .stroke(snapshot.aggregatedStatus == .needsInput ? Color.red.opacity(0.5) : Color.clear, lineWidth: 2)
         )
         .shadow(color: .black.opacity(0.05), radius: 3, y: 2)
     }
@@ -140,7 +140,7 @@ struct AgentStatusCount: View {
     }
 }
 
-struct NewFloorCard: View {
+struct NewSnapshotCard: View {
     let action: () -> Void
 
     var body: some View {
@@ -149,7 +149,7 @@ struct NewFloorCard: View {
                 Image(systemName: "plus")
                     .font(.title3)
                     .foregroundStyle(.secondary)
-                Text(L10n.newFloor)
+                Text(L10n.newSnapshot)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -16,17 +16,17 @@
 "browse" = "浏览...";
 "repo_path" = "仓库路径";
 
-/* Floor */
-"new_floor" = "新建楼层";
-"new_floor_desc" = "创建一个 Git Worktree 用于隔离开发。";
-"create_floor" = "创建楼层";
-"delete_floor" = "删除楼层";
-"no_floors" = "暂无楼层";
+/* Snapshot */
+"new_snapshot" = "新建工作快照";
+"new_snapshot_desc" = "创建一个 Git Worktree 用于隔离开发。";
+"create_snapshot" = "创建工作快照";
+"delete_snapshot" = "删除工作快照";
+"no_snapshots" = "暂无工作快照";
 "select_branch" = "选择分支...";
 "new_branch" = "或创建新分支";
-"floor_name" = "楼层名称";
+"snapshot_name" = "工作快照名称";
 "branch" = "分支";
-"floors" = "楼层";
+"snapshots" = "工作快照";
 
 /* Agent */
 "new_agent" = "新建 Agent";
@@ -48,12 +48,12 @@
 /* Empty States */
 "welcome_title" = "欢迎使用 AgentTerms";
 "welcome_subtitle" = "创建你的第一个工作区来开始管理 AI Agent。";
-"no_floors_title" = "暂无楼层";
-"no_floors_subtitle" = "添加一个楼层来组织你的开发任务。";
+"no_snapshots_title" = "暂无工作快照";
+"no_snapshots_subtitle" = "添加一个工作快照来组织你的开发任务。";
 "no_agents_title" = "暂无 Agent";
 "no_agents_subtitle" = "启动一个 Agent 开始编码。";
-"select_floor_title" = "选择楼层";
-"select_floor_subtitle" = "从侧边栏选择一个工作区查看楼层。";
+"select_snapshot_title" = "选择工作快照";
+"select_snapshot_subtitle" = "从侧边栏选择一个工作区查看工作快照。";
 
 /* Menu Bar */
 "agents_need_attention" = "个 Agent 需要关注";
@@ -79,4 +79,4 @@
 "uncommitted_warning" = "该目录存在未提交的代码修改！";
 "force_delete_title" = "强制删除";
 "force_delete" = "强制删除";
-"force_delete_message" = "该楼层有未提交的代码修改，强制删除后数据无法恢复，确定继续？";
+"force_delete_message" = "该工作快照有未提交的代码修改，强制删除后数据无法恢复，确定继续？";

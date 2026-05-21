@@ -139,7 +139,7 @@ struct CreateWorkspaceSheet: View {
     }
 }
 
-struct CreateFloorSheet: View {
+struct CreateSnapshotSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
@@ -155,20 +155,20 @@ struct CreateFloorSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             VStack(alignment: .leading, spacing: 4) {
-                Text(L10n.newFloor)
+                Text(L10n.newSnapshot)
                     .font(.title2)
                     .fontWeight(.bold)
-                Text(L10n.newFloorDesc)
+                Text(L10n.newSnapshotDesc)
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
 
-            // Floor name
+            // Snapshot name
             VStack(alignment: .leading, spacing: 6) {
-                Text(L10n.floorName)
+                Text(L10n.snapshotName)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                TextField("", text: $name, prompt: Text(L10n.floorName).foregroundColor(Color.secondary.opacity(0.5)))
+                TextField("", text: $name, prompt: Text(L10n.snapshotName).foregroundColor(Color.secondary.opacity(0.5)))
                     .textFieldStyle(.roundedBorder)
                     .focused($isNameFocused)
             }
@@ -256,8 +256,8 @@ struct CreateFloorSheet: View {
                 Button(L10n.cancel) { dismiss() }
                     .keyboardShortcut(.escape)
                 Spacer()
-                Button(L10n.createFloor) {
-                    createFloor()
+                Button(L10n.createSnapshot) {
+                    createSnapshot()
                 }
                 .keyboardShortcut(.return)
                 .buttonStyle(.borderedProminent)
@@ -309,15 +309,15 @@ struct CreateFloorSheet: View {
         }
     }
 
-    private func createFloor() {
+    private func createSnapshot() {
         guard let wsID = appState.selectedWorkspaceID else { return }
 
-        let floorName = effectiveName
+        let snapshotName = effectiveName
         let branchToUse = effectiveBranch
         let isNew = !newBranchName.isEmpty || !branches.contains(branchToUse)
 
         do {
-            try appState.addFloor(name: floorName, branch: branchToUse, isNewBranch: isNew, to: wsID)
+            try appState.addSnapshot(name: snapshotName, branch: branchToUse, isNewBranch: isNew, to: wsID)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -337,11 +337,11 @@ struct CreateAgentSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            if let floor = appState.selectedFloor {
+            if let snapshot = appState.selectedSnapshot {
                 HStack(spacing: 4) {
                     Image(systemName: "folder")
                         .foregroundStyle(.secondary)
-                    Text(floor.worktreePath)
+                    Text(snapshot.worktreePath)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -367,12 +367,12 @@ struct CreateAgentSheet: View {
                 Button(L10n.startAgent) {
                     guard !taskDescription.isEmpty,
                           let wsID = appState.selectedWorkspaceID,
-                          let floor = appState.selectedFloor else { return }
+                          let snapshot = appState.selectedSnapshot else { return }
                     appState.addAgent(
                         tool: tool,
-                        workingDirectory: floor.worktreePath,
+                        workingDirectory: snapshot.worktreePath,
                         taskDescription: taskDescription,
-                        toFloor: floor.id,
+                        toSnapshot: snapshot.id,
                         inWorkspace: wsID
                     )
                     dismiss()
@@ -387,10 +387,10 @@ struct CreateAgentSheet: View {
     }
 }
 
-struct DeleteFloorSheet: View {
+struct DeleteSnapshotSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    let floor: Floor
+    let snapshot: Snapshot
     let workspaceID: UUID
     @State private var removeWorktree = true
     @State private var hasUncommitted = false
@@ -402,27 +402,27 @@ struct DeleteFloorSheet: View {
                 .font(.system(size: 32))
                 .foregroundStyle(.orange)
 
-            Text(L10n.deleteFloor)
+            Text(L10n.deleteSnapshot)
                 .font(.title2)
                 .fontWeight(.semibold)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(L10n.floorName + ":")
+                    Text(L10n.snapshotName + ":")
                         .foregroundStyle(.secondary)
-                    Text(floor.name)
+                    Text(snapshot.name)
                         .fontWeight(.medium)
                 }
                 HStack {
                     Text(L10n.branch + ":")
                         .foregroundStyle(.secondary)
-                    Text(floor.branch)
+                    Text(snapshot.branch)
                         .fontWeight(.medium)
                 }
                 HStack {
                     Text("Agents:")
                         .foregroundStyle(.secondary)
-                    Text("\(floor.agents.count)")
+                    Text("\(snapshot.agents.count)")
                         .fontWeight(.medium)
                 }
             }
@@ -433,7 +433,7 @@ struct DeleteFloorSheet: View {
             Toggle(L10n.deleteWorktree, isOn: $removeWorktree)
 
             if removeWorktree {
-                Text(floor.worktreePath)
+                Text(snapshot.worktreePath)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
@@ -469,7 +469,7 @@ struct DeleteFloorSheet: View {
         .padding(24)
         .frame(width: 400)
         .onAppear {
-            hasUncommitted = GitService.hasUncommittedChanges(worktreePath: floor.worktreePath)
+            hasUncommitted = GitService.hasUncommittedChanges(worktreePath: snapshot.worktreePath)
         }
         .alert(L10n.forceDeleteTitle, isPresented: $showForceConfirm) {
             Button(L10n.cancel, role: .cancel) {}
@@ -482,7 +482,7 @@ struct DeleteFloorSheet: View {
     }
 
     private func performDelete() {
-        appState.removeFloor(id: floor.id, from: workspaceID, removeWorktree: removeWorktree)
+        appState.removeSnapshot(id: snapshot.id, from: workspaceID, removeWorktree: removeWorktree)
         dismiss()
     }
 }

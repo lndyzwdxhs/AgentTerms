@@ -5,7 +5,7 @@ import SwiftUI
 final class AppState {
     var workspaces: [Workspace] = []
     var selectedWorkspaceID: UUID?
-    var selectedFloorID: UUID?
+    var selectedSnapshotID: UUID?
     var selectedAgentID: UUID?
 
     private let persistence = PersistenceService()
@@ -31,13 +31,13 @@ final class AppState {
         }
     }
 
-    var selectedFloor: Floor? {
+    var selectedSnapshot: Snapshot? {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == selectedWorkspaceID }) else { return nil }
-        return workspaces[wsIdx].floors.first { $0.id == selectedFloorID }
+        return workspaces[wsIdx].snapshots.first { $0.id == selectedSnapshotID }
     }
 
     var allAgents: [Agent] {
-        workspaces.flatMap { $0.floors.flatMap { $0.agents } }
+        workspaces.flatMap { $0.snapshots.flatMap { $0.agents } }
     }
 
     var agentsNeedingAttention: Int {
@@ -61,14 +61,14 @@ final class AppState {
         workspaces.removeAll { $0.id == id }
         if selectedWorkspaceID == id {
             selectedWorkspaceID = workspaces.first?.id
-            selectedFloorID = nil
+            selectedSnapshotID = nil
         }
         saveState()
     }
 
-    // MARK: - Floor Operations
+    // MARK: - Snapshot Operations
 
-    func addFloor(name: String, branch: String, isNewBranch: Bool, to workspaceID: UUID) throws {
+    func addSnapshot(name: String, branch: String, isNewBranch: Bool, to workspaceID: UUID) throws {
         guard let idx = workspaces.firstIndex(where: { $0.id == workspaceID }) else { return }
         let workspace = workspaces[idx]
 
@@ -85,56 +85,56 @@ final class AppState {
             isNew: isNewBranch
         )
 
-        let floor = Floor(name: name, branch: branch, worktreePath: worktreePath)
-        workspaces[idx].floors.append(floor)
-        selectedFloorID = floor.id
+        let snapshot = Snapshot(name: name, branch: branch, worktreePath: worktreePath)
+        workspaces[idx].snapshots.append(snapshot)
+        selectedSnapshotID = snapshot.id
         saveState()
     }
 
-    func removeFloor(id: UUID, from workspaceID: UUID, removeWorktree: Bool = true) {
+    func removeSnapshot(id: UUID, from workspaceID: UUID, removeWorktree: Bool = true) {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }) else { return }
-        if let floor = workspaces[wsIdx].floors.first(where: { $0.id == id }) {
+        if let snapshot = workspaces[wsIdx].snapshots.first(where: { $0.id == id }) {
             // Clean up all agent terminals
-            for agent in floor.agents {
+            for agent in snapshot.agents {
                 TerminalManager.shared.remove(agentID: agent.id)
             }
             // Remove git worktree if requested
             if removeWorktree {
-                try? GitService.removeWorktree(repoPath: workspaces[wsIdx].repoPath, path: floor.worktreePath)
+                try? GitService.removeWorktree(repoPath: workspaces[wsIdx].repoPath, path: snapshot.worktreePath)
             }
         }
-        workspaces[wsIdx].floors.removeAll { $0.id == id }
-        if selectedFloorID == id {
-            selectedFloorID = workspaces[wsIdx].floors.first?.id
+        workspaces[wsIdx].snapshots.removeAll { $0.id == id }
+        if selectedSnapshotID == id {
+            selectedSnapshotID = workspaces[wsIdx].snapshots.first?.id
         }
         saveState()
     }
 
     // MARK: - Agent Operations
 
-    func addAgent(tool: AgentTool, workingDirectory: String, taskDescription: String, toFloor floorID: UUID, inWorkspace workspaceID: UUID) {
+    func addAgent(tool: AgentTool, workingDirectory: String, taskDescription: String, toSnapshot snapshotID: UUID, inWorkspace workspaceID: UUID) {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }),
-              let floorIdx = workspaces[wsIdx].floors.firstIndex(where: { $0.id == floorID }) else { return }
+              let snapshotIdx = workspaces[wsIdx].snapshots.firstIndex(where: { $0.id == snapshotID }) else { return }
         let agent = Agent(tool: tool, workingDirectory: workingDirectory, taskDescription: taskDescription)
-        workspaces[wsIdx].floors[floorIdx].agents.append(agent)
+        workspaces[wsIdx].snapshots[snapshotIdx].agents.append(agent)
         selectedAgentID = agent.id
         saveState()
     }
 
-    func removeAgent(id: UUID, fromFloor floorID: UUID, inWorkspace workspaceID: UUID) {
+    func removeAgent(id: UUID, fromSnapshot snapshotID: UUID, inWorkspace workspaceID: UUID) {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }),
-              let floorIdx = workspaces[wsIdx].floors.firstIndex(where: { $0.id == floorID }) else { return }
-        workspaces[wsIdx].floors[floorIdx].agents.removeAll { $0.id == id }
+              let snapshotIdx = workspaces[wsIdx].snapshots.firstIndex(where: { $0.id == snapshotID }) else { return }
+        workspaces[wsIdx].snapshots[snapshotIdx].agents.removeAll { $0.id == id }
         saveState()
     }
 
     func bindSession(agentID: UUID, sessionID: String, projectPath: String? = nil) {
         for wsIdx in workspaces.indices {
-            for floorIdx in workspaces[wsIdx].floors.indices {
-                if let agentIdx = workspaces[wsIdx].floors[floorIdx].agents.firstIndex(where: { $0.id == agentID }) {
-                    workspaces[wsIdx].floors[floorIdx].agents[agentIdx].sessionID = sessionID
+            for snapshotIdx in workspaces[wsIdx].snapshots.indices {
+                if let agentIdx = workspaces[wsIdx].snapshots[snapshotIdx].agents.firstIndex(where: { $0.id == agentID }) {
+                    workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx].sessionID = sessionID
                     if let projectPath {
-                        workspaces[wsIdx].floors[floorIdx].agents[agentIdx].projectPath = projectPath
+                        workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx].projectPath = projectPath
                     }
                     saveState()
                     return
@@ -145,14 +145,14 @@ final class AppState {
 
     func updateAgentStatus(agentID: UUID, status: AgentStatus) {
         for wsIdx in workspaces.indices {
-            for floorIdx in workspaces[wsIdx].floors.indices {
-                if let agentIdx = workspaces[wsIdx].floors[floorIdx].agents.firstIndex(where: { $0.id == agentID }) {
-                    let oldStatus = workspaces[wsIdx].floors[floorIdx].agents[agentIdx].status
-                    workspaces[wsIdx].floors[floorIdx].agents[agentIdx].status = status
+            for snapshotIdx in workspaces[wsIdx].snapshots.indices {
+                if let agentIdx = workspaces[wsIdx].snapshots[snapshotIdx].agents.firstIndex(where: { $0.id == agentID }) {
+                    let oldStatus = workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx].status
+                    workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx].status = status
 
                     // Send notifications on status transitions
                     if oldStatus != status {
-                        let agent = workspaces[wsIdx].floors[floorIdx].agents[agentIdx]
+                        let agent = workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx]
                         switch status {
                         case .needsInput:
                             NotificationService.shared.notifyNeedsInput(agent: agent)
@@ -177,6 +177,6 @@ final class AppState {
     func loadState() {
         workspaces = persistence.load()
         selectedWorkspaceID = workspaces.first?.id
-        selectedFloorID = workspaces.first?.floors.first?.id
+        selectedSnapshotID = workspaces.first?.snapshots.first?.id
     }
 }

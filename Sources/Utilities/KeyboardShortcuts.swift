@@ -11,8 +11,8 @@ struct KeyboardShortcutCommands: Commands {
             }
             .keyboardShortcut("n", modifiers: [.command])
 
-            Button("New Floor") {
-                NotificationCenter.default.post(name: .createFloor, object: nil)
+            Button("New Snapshot") {
+                NotificationCenter.default.post(name: .createSnapshot, object: nil)
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
 
@@ -25,7 +25,7 @@ struct KeyboardShortcutCommands: Commands {
         }
 
         CommandGroup(after: .toolbar) {
-            // Agent switching: Cmd+1~9 activates Nth agent in current floor
+            // Agent switching: Cmd+1~9 activates Nth agent in current snapshot
             Button("Agent 1") { selectAgent(at: 0) }
                 .keyboardShortcut("1", modifiers: [.command])
             Button("Agent 2") { selectAgent(at: 1) }
@@ -75,7 +75,7 @@ struct KeyboardShortcutCommands: Commands {
     }
 
     private func selectAgent(at index: Int) {
-        let agents = appState.selectedFloor?.agents ?? []
+        let agents = appState.selectedSnapshot?.agents ?? []
         guard index < agents.count else { return }
         appState.selectedAgentID = agents[index].id
     }
@@ -83,7 +83,7 @@ struct KeyboardShortcutCommands: Commands {
     private func selectWorkspace(at index: Int) {
         guard index < appState.workspaces.count else { return }
         appState.selectedWorkspaceID = appState.workspaces[index].id
-        appState.selectedFloorID = appState.workspaces[index].floors.first?.id
+        appState.selectedSnapshotID = appState.workspaces[index].snapshots.first?.id
         appState.selectedAgentID = nil
     }
 
@@ -94,7 +94,7 @@ struct KeyboardShortcutCommands: Commands {
     }
 
     private func navigateAgent(direction: Int) {
-        let agents = appState.selectedFloor?.agents ?? []
+        let agents = appState.selectedSnapshot?.agents ?? []
         guard !agents.isEmpty else { return }
 
         if let currentID = appState.selectedAgentID,
@@ -111,6 +111,6 @@ struct KeyboardShortcutCommands: Commands {
 
 extension Notification.Name {
     static let createAgent = Notification.Name("com.agentterms.createAgent")
-    static let createFloor = Notification.Name("com.agentterms.createFloor")
+    static let createSnapshot = Notification.Name("com.agentterms.createSnapshot")
     static let closeAgent = Notification.Name("com.agentterms.closeAgent")
 }

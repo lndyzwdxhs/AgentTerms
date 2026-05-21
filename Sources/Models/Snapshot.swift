@@ -1,6 +1,6 @@
 import Foundation
 
-struct Floor: Identifiable, Codable, Hashable {
+struct Snapshot: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
     var branch: String
@@ -27,7 +27,7 @@ struct Floor: Identifiable, Codable, Hashable {
         hasher.combine(id)
     }
 
-    static func == (lhs: Floor, rhs: Floor) -> Bool {
+    static func == (lhs: Snapshot, rhs: Snapshot) -> Bool {
         lhs.id == rhs.id
     }
 }

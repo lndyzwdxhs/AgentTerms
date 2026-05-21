@@ -8,14 +8,14 @@ struct Workspace: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
     var repoPath: String
-    var floors: [Floor]
+    var snapshots: [Snapshot]
     var color: WorkspaceColor
 
-    init(id: UUID = UUID(), name: String, repoPath: String, floors: [Floor] = [], color: WorkspaceColor = .orange) {
+    init(id: UUID = UUID(), name: String, repoPath: String, snapshots: [Snapshot] = [], color: WorkspaceColor = .orange) {
         self.id = id
         self.name = name
         self.repoPath = repoPath
-        self.floors = floors
+        self.snapshots = snapshots
         self.color = color
     }
 
@@ -25,8 +25,12 @@ struct Workspace: Identifiable, Codable, Hashable {
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         repoPath = try container.decode(String.self, forKey: .repoPath)
-        floors = try container.decode([Floor].self, forKey: .floors)
+        snapshots = try container.decodeIfPresent([Snapshot].self, forKey: .snapshots) ?? []
         color = try container.decodeIfPresent(WorkspaceColor.self, forKey: .color) ?? .orange
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, repoPath, snapshots, color
     }
 
     /// Directory where all worktrees for this workspace are stored
@@ -36,8 +40,8 @@ struct Workspace: Identifiable, Codable, Hashable {
     }
 
     var aggregatedStatus: AgentStatus {
-        if floors.isEmpty { return .idle }
-        let statuses = floors.map { $0.aggregatedStatus }
+        if snapshots.isEmpty { return .idle }
+        let statuses = snapshots.map { $0.aggregatedStatus }
         if statuses.contains(.error) { return .error }
         if statuses.contains(.needsInput) { return .needsInput }
         if statuses.contains(.running) { return .running }

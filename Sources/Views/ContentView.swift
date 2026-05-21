@@ -2,9 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
-    @State private var showCreateFloor = false
+    @State private var showCreateSnapshot = false
     @State private var showCreateAgent = false
-    @State private var showFloorSwitcher = false
+    @State private var showSnapshotSwitcher = false
 
     var body: some View {
         NavigationSplitView {
@@ -14,20 +14,20 @@ struct ContentView: View {
                 if appState.workspaces.isEmpty {
                     EmptyStateView(type: .noWorkspaces)
                 } else if appState.selectedWorkspace != nil {
-                    if appState.selectedFloor != nil {
+                    if appState.selectedSnapshot != nil {
                         AgentGridView()
                     } else {
-                        EmptyStateView(type: .noFloors)
+                        EmptyStateView(type: .noSnapshots)
                     }
                 } else {
-                    EmptyStateView(type: .selectFloor)
+                    EmptyStateView(type: .selectSnapshot)
                 }
 
-                // 3D Floor Switcher overlay (detail area only)
-                if showFloorSwitcher {
-                    FloorSwitcher3DView(
-                        isPresented: $showFloorSwitcher,
-                        showCreateFloor: $showCreateFloor
+                // 3D Snapshot Switcher overlay (detail area only)
+                if showSnapshotSwitcher {
+                    SnapshotSwitcher3DView(
+                        isPresented: $showSnapshotSwitcher,
+                        showCreateSnapshot: $showCreateSnapshot
                     )
                     .transition(.opacity)
                 }
@@ -37,15 +37,15 @@ struct ContentView: View {
             .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigation) {
-                    FloorToolbarView(
-                        showFloorSwitcher: $showFloorSwitcher,
-                        showCreateFloor: $showCreateFloor
+                    SnapshotToolbarView(
+                        showSnapshotSwitcher: $showSnapshotSwitcher,
+                        showCreateSnapshot: $showCreateSnapshot
                     )
                 }
                 ToolbarItem(placement: .automatic) {
-                    if let floor = appState.selectedFloor {
+                    if let snapshot = appState.selectedSnapshot {
                         Button {
-                            openInVSCode(path: floor.worktreePath)
+                            openInVSCode(path: snapshot.worktreePath)
                         } label: {
                             if let nsImage = loadBundleImage("vscode") {
                                 Image(nsImage: nsImage)
@@ -60,8 +60,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showCreateFloor) {
-                CreateFloorSheet()
+            .sheet(isPresented: $showCreateSnapshot) {
+                CreateSnapshotSheet()
             }
             .sheet(isPresented: $showCreateAgent) {
                 CreateAgentSheet()
@@ -89,25 +89,25 @@ struct ContentView: View {
     }
 }
 
-/// Floor switcher displayed in the window titlebar
-struct FloorToolbarView: View {
+/// Snapshot switcher displayed in the window titlebar
+struct SnapshotToolbarView: View {
     @Environment(AppState.self) private var appState
-    @Binding var showFloorSwitcher: Bool
-    @Binding var showCreateFloor: Bool
+    @Binding var showSnapshotSwitcher: Bool
+    @Binding var showCreateSnapshot: Bool
 
     var body: some View {
         HStack(spacing: 10) {
-            if let floor = appState.selectedFloor {
+            if let snapshot = appState.selectedSnapshot {
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        showFloorSwitcher = true
+                        showSnapshotSwitcher = true
                     }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "square.3.layers.3d")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.secondary)
-                        Text(floor.name)
+                        Text(snapshot.name)
                             .font(.headline)
                             .foregroundStyle(.primary)
                     }
@@ -117,7 +117,7 @@ struct FloorToolbarView: View {
                 HStack(spacing: 3) {
                     Image(systemName: "arrow.triangle.branch")
                         .font(.caption2)
-                    Text(floor.branch)
+                    Text(snapshot.branch)
                         .font(.caption)
                 }
                 .foregroundStyle(.secondary)
@@ -127,10 +127,10 @@ struct FloorToolbarView: View {
 
             } else if appState.selectedWorkspace != nil {
                 Button {
-                    showCreateFloor = true
+                    showCreateSnapshot = true
                 } label: {
                     HStack(spacing: 4) {
-                        Text(L10n.noFloors)
+                        Text(L10n.noSnapshots)
                             .font(.body)
                             .foregroundStyle(.secondary)
                         Image(systemName: "plus.circle")
