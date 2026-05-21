@@ -91,6 +91,14 @@ final class TerminalManager {
         sessionDetectionTimers.removeValue(forKey: agentID)
     }
 
+    /// Update font size for all cached terminals
+    func setFontSize(_ size: CGFloat) {
+        let font = NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
+        for terminal in terminals.values {
+            terminal.font = font
+        }
+    }
+
     /// Check if a terminal exists for an agent
     func hasTerminal(for agentID: UUID) -> Bool {
         terminals[agentID] != nil

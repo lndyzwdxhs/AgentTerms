@@ -21,6 +21,7 @@ struct AgentGridView: View {
                                 index: index + 1,
                                 isSelected: agent.id == appState.selectedAgentID
                             )
+                            .id("\(agent.id)-\(agent.status.rawValue)")
                             .onTapGesture {
                                 appState.selectedAgentID = agent.id
                             }

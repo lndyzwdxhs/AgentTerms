@@ -8,6 +8,8 @@ class TerminalContainerView: NSView {
     private var currentAgentID: UUID?
     private var currentTerminal: LocalProcessTerminalView?
     private let inset: CGFloat = 8
+    private var fontSize: CGFloat = 13.0
+    private var keyMonitor: Any?
 
     func showTerminal(for agentID: UUID, terminal: LocalProcessTerminalView) {
         if currentAgentID == agentID { return }
@@ -25,12 +27,47 @@ class TerminalContainerView: NSView {
             terminal.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -inset)
         ])
 
+        // Apply current font size
+        terminal.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+
         currentTerminal = terminal
         currentAgentID = agentID
 
         // Focus the terminal so keyboard input goes to it
         DispatchQueue.main.async {
             terminal.window?.makeFirstResponder(terminal)
+        }
+
+        // Install key monitor for Cmd+/- font size shortcuts
+        if keyMonitor == nil {
+            keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self = self else { return event }
+                if event.modifierFlags.contains(.command) {
+                    let chars = event.charactersIgnoringModifiers ?? ""
+                    if chars == "=" || chars == "+" {
+                        self.adjustFontSize(delta: 1)
+                        return nil // consume event
+                    } else if chars == "-" {
+                        self.adjustFontSize(delta: -1)
+                        return nil // consume event
+                    }
+                }
+                return event
+            }
+        }
+    }
+
+    private func adjustFontSize(delta: CGFloat) {
+        fontSize = max(8, min(32, fontSize + delta))
+        if let terminal = currentTerminal {
+            terminal.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        }
+        TerminalManager.shared.setFontSize(fontSize)
+    }
+
+    deinit {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
         }
     }
 }

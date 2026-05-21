@@ -45,6 +45,7 @@ final class StatusMonitor {
         for agent in appState.allAgents {
             let newStatus = detectStatus(for: agent)
             if newStatus != agent.status && newStatus != .unknown {
+                print("[AgentTerms] Status change: \(agent.taskDescription) \(agent.status) → \(newStatus)")
                 DispatchQueue.main.async {
                     appState.updateAgentStatus(agentID: agent.id, status: newStatus)
                 }
@@ -68,13 +69,8 @@ final class StatusMonitor {
     // MARK: - Claude Code Status Detection
 
     private func detectClaudeCodeStatus(for agent: Agent) -> AgentStatus {
-        // No terminal running — agent is idle
-        guard TerminalManager.shared.hasTerminal(for: agent.id) else {
-            return .idle
-        }
-
         guard let sessionID = agent.sessionID, !sessionID.isEmpty else {
-            // Terminal started but no session yet — waiting for user's first message
+            // No session yet — agent hasn't started or waiting for first message
             return .idle
         }
 
@@ -129,7 +125,16 @@ final class StatusMonitor {
     // MARK: - JSONL Parsing
 
     private func parseSessionFile(at url: URL) -> AgentStatus {
-        guard let data = try? Data(contentsOf: url),
+        // Only read the last 8KB of the file for efficiency
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else {
+            return .unknown
+        }
+        defer { fileHandle.closeFile() }
+
+        let fileSize = fileHandle.seekToEndOfFile()
+        let readSize: UInt64 = min(fileSize, 8192)
+        fileHandle.seek(toFileOffset: fileSize - readSize)
+        guard let data = try? fileHandle.readToEnd(),
               let content = String(data: data, encoding: .utf8) else {
             return .unknown
         }
@@ -180,7 +185,6 @@ final class StatusMonitor {
                 for block in blocks {
                     if block["type"] as? String == "tool_use" {
                         let toolName = block["name"] as? String ?? ""
-                        // AskUserQuestion, permission requests, etc. — agent is blocked
                         if toolName == "AskUserQuestion" || toolName == "TodoQuery" {
                             return .needsInput
                         }
@@ -207,7 +211,8 @@ final class StatusMonitor {
             return .idle
 
         case "result":
-            return .idle
+            // Tool result received — agent is processing
+            return elapsed > 30 ? .idle : .running
 
         case "error":
             return .error
