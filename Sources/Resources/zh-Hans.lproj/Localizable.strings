@@ -62,6 +62,9 @@
 
 /* Settings */
 "settings" = "设置";
+"settings_general" = "通用";
+"settings_tools" = "工具";
+"settings_language" = "语言";
 "command" = "启动命令";
 "config_path" = "配置路径";
 "resume_arg" = "恢复参数";

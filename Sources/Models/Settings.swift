@@ -21,6 +21,7 @@ final class Settings {
             applyLanguage()
         }
     }
+    var terminalTheme: TerminalTheme = .dracula
 
     private let settingsURL: URL = {
         PersistenceService.baseDir.appendingPathComponent("settings.json")
@@ -61,7 +62,7 @@ final class Settings {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(SettingsData(toolConfigs: toolConfigs, language: language))
+            let data = try encoder.encode(SettingsData(toolConfigs: toolConfigs, language: language, terminalTheme: terminalTheme))
             try data.write(to: settingsURL, options: .atomic)
         } catch {
             print("[AgentTerms] Failed to save settings: \(error)")
@@ -75,6 +76,7 @@ final class Settings {
             let decoded = try JSONDecoder().decode(SettingsData.self, from: data)
             toolConfigs = decoded.toolConfigs
             language = decoded.language
+            terminalTheme = decoded.terminalTheme
         } catch {
             // Try legacy format (just toolConfigs)
             if let data = try? Data(contentsOf: settingsURL),
@@ -115,4 +117,22 @@ struct ToolConfig: Codable {
 private struct SettingsData: Codable {
     var toolConfigs: [AgentTool: ToolConfig] = [:]
     var language: AppLanguage = .zhHans
+    var terminalTheme: TerminalTheme = .dracula
+
+    enum CodingKeys: String, CodingKey {
+        case toolConfigs, language, terminalTheme
+    }
+
+    init(toolConfigs: [AgentTool: ToolConfig] = [:], language: AppLanguage = .zhHans, terminalTheme: TerminalTheme = .dracula) {
+        self.toolConfigs = toolConfigs
+        self.language = language
+        self.terminalTheme = terminalTheme
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        toolConfigs = try container.decodeIfPresent([AgentTool: ToolConfig].self, forKey: .toolConfigs) ?? [:]
+        language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .zhHans
+        terminalTheme = try container.decodeIfPresent(TerminalTheme.self, forKey: .terminalTheme) ?? .dracula
+    }
 }

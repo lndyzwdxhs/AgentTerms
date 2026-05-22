@@ -173,12 +173,7 @@ final class StatusMonitor {
 
         switch type {
         case "assistant":
-            if elapsed <= 5 {
-                // File still being written — agent is actively responding
-                return .running
-            }
-
-            // File is stale — check if assistant is asking a question (needs user action)
+            // Check message content for tool_use blocks
             let msg = json["message"] as? [String: Any]
             let content = msg?["content"]
             if let blocks = content as? [[String: Any]] {
@@ -188,6 +183,8 @@ final class StatusMonitor {
                         if toolName == "AskUserQuestion" || toolName == "TodoQuery" {
                             return .needsInput
                         }
+                        // Agent is executing a tool (Bash, Agent, Read, etc.) — still running
+                        return .running
                     }
                 }
             }
@@ -197,6 +194,11 @@ final class StatusMonitor {
                 if subtype == "permission_request" || subtype == "confirmation" {
                     return .needsInput
                 }
+            }
+
+            if elapsed <= 5 {
+                // File still being written — agent is actively responding
+                return .running
             }
 
             // Agent finished responding, waiting for next user instruction

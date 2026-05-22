@@ -22,7 +22,7 @@ struct AgentGridView: View {
             if !TerminalManager.shared.hasTerminal(for: agent.id) {
                 _ = TerminalManager.shared.terminal(
                     for: agent.id,
-                    theme: .dracula,
+                    theme: settings.terminalTheme,
                     command: settings.command(for: agent.tool),
                     workingDirectory: agent.workingDirectory,
                     configPath: settings.configPath(for: agent.tool),
@@ -82,7 +82,7 @@ struct AgentGridView: View {
                    let agent = snapshot.agents.first(where: { $0.id == agentID }) {
                     TerminalSwitcherView(
                         agentID: agent.id,
-                        theme: .dracula,
+                        theme: settings.terminalTheme,
                         command: settings.command(for: agent.tool),
                         workingDirectory: agent.workingDirectory,
                         configPath: settings.configPath(for: agent.tool),

@@ -74,6 +74,9 @@ enum L10n {
 
     // MARK: - Settings
     static var settings: String { "settings".localized }
+    static var settingsGeneral: String { "settings_general".localized }
+    static var settingsTools: String { "settings_tools".localized }
+    static var settingsLanguageSection: String { "settings_language".localized }
     static var command: String { "command".localized }
     static var configPath: String { "config_path".localized }
     static var resumeArg: String { "resume_arg".localized }
