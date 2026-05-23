@@ -61,6 +61,8 @@ struct TerminalFullView: View {
                 configPath: settings.configPath(for: agent.tool),
                 sessionID: agent.sessionID,
                 resumeArg: settings.resumeArg(for: agent.tool),
+                fontName: settings.terminalFontName,
+                fontSize: settings.terminalFontSize,
                 appState: appState,
                 onProcessExit: {
                     appState.updateAgentStatus(agentID: agent.id, status: .idle)

@@ -86,6 +86,14 @@ struct GitService {
         return !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    /// Switch branch in a repository
+    static func checkout(repoPath: String, branch: String) throws {
+        let (output, exitCode) = runGit(args: ["checkout", branch], in: repoPath)
+        if exitCode != 0 {
+            throw GitError.commandFailed(output)
+        }
+    }
+
     // MARK: - Private
 
     private static func runGit(args: [String], in directory: String) -> (output: String, exitCode: Int32) {

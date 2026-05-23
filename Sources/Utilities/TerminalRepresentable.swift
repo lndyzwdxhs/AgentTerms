@@ -9,6 +9,7 @@ class TerminalContainerView: NSView {
     private var currentTerminal: LocalProcessTerminalView?
     private let inset: CGFloat = 8
     private var fontSize: CGFloat = 13.0
+    private var fontName: String = ""
     private var keyMonitor: Any?
 
     func showTerminal(for agentID: UUID, terminal: LocalProcessTerminalView) {
@@ -27,8 +28,8 @@ class TerminalContainerView: NSView {
             terminal.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -inset)
         ])
 
-        // Apply current font size
-        terminal.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        // Apply current font
+        terminal.font = resolveFont()
 
         currentTerminal = terminal
         currentAgentID = agentID
@@ -60,9 +61,25 @@ class TerminalContainerView: NSView {
     private func adjustFontSize(delta: CGFloat) {
         fontSize = max(8, min(32, fontSize + delta))
         if let terminal = currentTerminal {
-            terminal.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+            terminal.font = resolveFont()
         }
         TerminalManager.shared.setFontSize(fontSize)
+    }
+
+    private func resolveFont() -> NSFont {
+        if fontName.isEmpty {
+            return NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        }
+        return NSFont(name: fontName, size: fontSize)
+            ?? NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+    }
+
+    func updateFontSettings(name: String, size: CGFloat) {
+        fontName = name
+        fontSize = size
+        if let terminal = currentTerminal {
+            terminal.font = resolveFont()
+        }
     }
 
     deinit {
@@ -81,6 +98,8 @@ struct TerminalSwitcherView: NSViewRepresentable {
     let configPath: String
     let sessionID: String?
     let resumeArg: String
+    let fontName: String
+    let fontSize: CGFloat
     let appState: AppState
     let onProcessExit: () -> Void
 
@@ -90,6 +109,8 @@ struct TerminalSwitcherView: NSViewRepresentable {
 
     func updateNSView(_ containerView: TerminalContainerView, context: Context) {
         guard let agentID else { return }
+
+        containerView.updateFontSettings(name: fontName, size: fontSize)
 
         let terminal = TerminalManager.shared.terminal(
             for: agentID,

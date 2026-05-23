@@ -22,6 +22,8 @@ final class Settings {
         }
     }
     var terminalTheme: TerminalTheme = .dracula
+    var terminalFontName: String = "" // empty = system monospace
+    var terminalFontSize: CGFloat = 13
 
     private let settingsURL: URL = {
         PersistenceService.baseDir.appendingPathComponent("settings.json")
@@ -62,7 +64,7 @@ final class Settings {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(SettingsData(toolConfigs: toolConfigs, language: language, terminalTheme: terminalTheme))
+            let data = try encoder.encode(SettingsData(toolConfigs: toolConfigs, language: language, terminalTheme: terminalTheme, terminalFontName: terminalFontName, terminalFontSize: terminalFontSize))
             try data.write(to: settingsURL, options: .atomic)
         } catch {
             print("[AgentTerms] Failed to save settings: \(error)")
@@ -77,6 +79,8 @@ final class Settings {
             toolConfigs = decoded.toolConfigs
             language = decoded.language
             terminalTheme = decoded.terminalTheme
+            terminalFontName = decoded.terminalFontName
+            terminalFontSize = decoded.terminalFontSize
         } catch {
             // Try legacy format (just toolConfigs)
             if let data = try? Data(contentsOf: settingsURL),
@@ -118,15 +122,19 @@ private struct SettingsData: Codable {
     var toolConfigs: [AgentTool: ToolConfig] = [:]
     var language: AppLanguage = .zhHans
     var terminalTheme: TerminalTheme = .dracula
+    var terminalFontName: String = ""
+    var terminalFontSize: CGFloat = 13
 
     enum CodingKeys: String, CodingKey {
-        case toolConfigs, language, terminalTheme
+        case toolConfigs, language, terminalTheme, terminalFontName, terminalFontSize
     }
 
-    init(toolConfigs: [AgentTool: ToolConfig] = [:], language: AppLanguage = .zhHans, terminalTheme: TerminalTheme = .dracula) {
+    init(toolConfigs: [AgentTool: ToolConfig] = [:], language: AppLanguage = .zhHans, terminalTheme: TerminalTheme = .dracula, terminalFontName: String = "", terminalFontSize: CGFloat = 13) {
         self.toolConfigs = toolConfigs
         self.language = language
         self.terminalTheme = terminalTheme
+        self.terminalFontName = terminalFontName
+        self.terminalFontSize = terminalFontSize
     }
 
     init(from decoder: Decoder) throws {
@@ -134,5 +142,7 @@ private struct SettingsData: Codable {
         toolConfigs = try container.decodeIfPresent([AgentTool: ToolConfig].self, forKey: .toolConfigs) ?? [:]
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .zhHans
         terminalTheme = try container.decodeIfPresent(TerminalTheme.self, forKey: .terminalTheme) ?? .dracula
+        terminalFontName = try container.decodeIfPresent(String.self, forKey: .terminalFontName) ?? ""
+        terminalFontSize = try container.decodeIfPresent(CGFloat.self, forKey: .terminalFontSize) ?? 13
     }
 }

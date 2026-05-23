@@ -105,10 +105,10 @@ struct SnapshotToolbarView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "square.3.layers.3d")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.secondary)
                         Text(snapshot.name)
-                            .font(.headline)
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.primary)
                     }
                 }
@@ -116,14 +116,14 @@ struct SnapshotToolbarView: View {
 
                 HStack(spacing: 3) {
                     Image(systemName: "arrow.triangle.branch")
-                        .font(.caption2)
+                        .font(.system(size: 11))
                     Text(snapshot.branch)
-                        .font(.caption)
+                        .font(.system(size: 12))
                 }
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.green)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(.quaternary, in: Capsule())
+                .background(.green.opacity(0.1), in: Capsule())
 
             } else if appState.selectedWorkspace != nil {
                 Button {

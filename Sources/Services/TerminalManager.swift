@@ -99,6 +99,20 @@ final class TerminalManager {
         }
     }
 
+    /// Update font name and size for all cached terminals
+    func setFont(name: String, size: CGFloat) {
+        let font: NSFont
+        if name.isEmpty {
+            font = NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
+        } else {
+            font = NSFont(name: name, size: size)
+                ?? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
+        }
+        for terminal in terminals.values {
+            terminal.font = font
+        }
+    }
+
     /// Check if a terminal exists for an agent
     func hasTerminal(for agentID: UUID) -> Bool {
         terminals[agentID] != nil

@@ -4,6 +4,7 @@ struct AgentGridView: View {
     @Environment(AppState.self) private var appState
     @Environment(Settings.self) private var settings
     @State private var showCreateAgent = false
+    @State private var draggedAgentID: UUID?
 
     private var snapshot: Snapshot? {
         appState.selectedSnapshot
@@ -50,6 +51,17 @@ struct AgentGridView: View {
                                 isSelected: agent.id == appState.selectedAgentID
                             )
                             .id("\(agent.id)-\(agent.status.rawValue)")
+                            .opacity(draggedAgentID == agent.id ? 0.4 : 1.0)
+                            .onDrag {
+                                draggedAgentID = agent.id
+                                return NSItemProvider(object: agent.id.uuidString as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: AgentDropDelegate(
+                                targetAgentID: agent.id,
+                                appState: appState,
+                                snapshot: snapshot,
+                                draggedAgentID: $draggedAgentID
+                            ))
                             .onTapGesture {
                                 appState.selectedAgentID = agent.id
                             }
@@ -88,6 +100,8 @@ struct AgentGridView: View {
                         configPath: settings.configPath(for: agent.tool),
                         sessionID: agent.sessionID,
                         resumeArg: settings.resumeArg(for: agent.tool),
+                        fontName: settings.terminalFontName,
+                        fontSize: settings.terminalFontSize,
                         appState: appState,
                         onProcessExit: {
                             appState.updateAgentStatus(agentID: agent.id, status: .idle)
@@ -239,5 +253,39 @@ struct AddAgentCard: View {
         }
         .scaleEffect(isHovered ? 0.95 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
+    }
+}
+
+// MARK: - Drag & Drop Delegate
+
+struct AgentDropDelegate: DropDelegate {
+    let targetAgentID: UUID
+    let appState: AppState
+    let snapshot: Snapshot
+    @Binding var draggedAgentID: UUID?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedAgentID = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedID = draggedAgentID,
+              draggedID != targetAgentID,
+              let wsID = appState.selectedWorkspaceID,
+              let fromIndex = snapshot.agents.firstIndex(where: { $0.id == draggedID }),
+              let toIndex = snapshot.agents.firstIndex(where: { $0.id == targetAgentID }) else { return }
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            appState.moveAgent(fromIndex: fromIndex, toIndex: toIndex, inSnapshot: snapshot.id, inWorkspace: wsID)
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func validateDrop(info: DropInfo) -> Bool {
+        draggedAgentID != nil
     }
 }

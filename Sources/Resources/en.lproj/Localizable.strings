@@ -72,6 +72,10 @@
 /* Terminal */
 "back" = "Back";
 "terminal_theme" = "Terminal Theme";
+"terminal_font" = "Terminal Font";
+"font_family" = "Font";
+"font_size" = "Size";
+"system_default" = "System Default";
 
 /* Notifications */
 "notif_needs_input" = "🙋 Agent has a question";

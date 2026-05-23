@@ -84,6 +84,10 @@ enum L10n {
     // MARK: - Terminal
     static var back: String { "back".localized }
     static var terminalTheme: String { "terminal_theme".localized }
+    static var terminalFont: String { "terminal_font".localized }
+    static var fontFamily: String { "font_family".localized }
+    static var fontSize: String { "font_size".localized }
+    static var systemDefault: String { "system_default".localized }
 
     // MARK: - Notifications
     static var notifNeedsInput: String { "notif_needs_input".localized }

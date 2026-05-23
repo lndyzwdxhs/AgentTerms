@@ -30,6 +30,8 @@ struct SettingsView: View {
     // General
     @State private var selectedLanguage: AppLanguage = .zhHans
     @State private var selectedTheme: TerminalTheme = .dracula
+    @State private var selectedFontName: String = ""
+    @State private var selectedFontSize: CGFloat = 13
 
     // Tool configs
     @State private var claudeCommand = ""
@@ -138,7 +140,80 @@ struct SettingsView: View {
                 themePreview
                     .padding(14)
             }
+
+            SettingsSection(title: L10n.terminalFont) {
+                SettingsRow(label: L10n.fontFamily) {
+                    Picker("", selection: $selectedFontName) {
+                        Text(L10n.systemDefault).tag("")
+                        ForEach(availableMonoFonts, id: \.self) { font in
+                            Text(font).tag(font)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 180)
+                }
+                Divider().padding(.leading, 14)
+                SettingsRow(label: L10n.fontSize) {
+                    HStack(spacing: 8) {
+                        Button {
+                            if selectedFontSize > 8 { selectedFontSize -= 1 }
+                        } label: {
+                            Image(systemName: "minus")
+                        }
+                        .buttonStyle(.borderless)
+
+                        Text("\(Int(selectedFontSize)) pt")
+                            .font(.system(size: 13, design: .monospaced))
+                            .frame(width: 50)
+
+                        Button {
+                            if selectedFontSize < 32 { selectedFontSize += 1 }
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                Divider().padding(.leading, 14)
+                // Font preview
+                fontPreview
+                    .padding(14)
+            }
         }
+    }
+
+    /// List of available monospace fonts on the system
+    private var availableMonoFonts: [String] {
+        let monoFamilies = NSFontManager.shared.availableFontFamilies.filter { family in
+            if let font = NSFont(name: family, size: 13) {
+                return font.isFixedPitch
+            }
+            return false
+        }
+        return monoFamilies.sorted()
+    }
+
+    private var fontPreview: some View {
+        let font: NSFont = {
+            if selectedFontName.isEmpty {
+                return NSFont.monospacedSystemFont(ofSize: selectedFontSize, weight: .regular)
+            } else {
+                return NSFont(name: selectedFontName, size: selectedFontSize)
+                    ?? NSFont.monospacedSystemFont(ofSize: selectedFontSize, weight: .regular)
+            }
+        }()
+        let colors = selectedTheme.colors
+        return Text("ABCabc 0123 → λ fn() { }")
+            .font(Font(font))
+            .foregroundColor(Color(nsColor: colors.foreground))
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(nsColor: colors.background))
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(Color(nsColor: .separatorColor).opacity(0.3), lineWidth: 0.5)
+            )
     }
 
     // MARK: - Theme Preview
@@ -206,6 +281,8 @@ struct SettingsView: View {
     private func loadAll() {
         selectedLanguage = settings.language
         selectedTheme = settings.terminalTheme
+        selectedFontName = settings.terminalFontName
+        selectedFontSize = settings.terminalFontSize
         claudeCommand = settings.toolConfigs[.claudeCode]?.command ?? ""
         claudeConfigPath = settings.toolConfigs[.claudeCode]?.configPath ?? ""
         claudeResumeArg = settings.toolConfigs[.claudeCode]?.resumeArg ?? ""
@@ -223,11 +300,15 @@ struct SettingsView: View {
     private func saveAll() {
         settings.language = selectedLanguage
         settings.terminalTheme = selectedTheme
+        settings.terminalFontName = selectedFontName
+        settings.terminalFontSize = selectedFontSize
         settings.toolConfigs[.claudeCode] = ToolConfig(command: claudeCommand, configPath: claudeConfigPath, resumeArg: claudeResumeArg)
         settings.toolConfigs[.codex] = ToolConfig(command: codexCommand, configPath: codexConfigPath, resumeArg: codexResumeArg)
         settings.toolConfigs[.gemini] = ToolConfig(command: geminiCommand, configPath: geminiConfigPath, resumeArg: geminiResumeArg)
         settings.toolConfigs[.other] = ToolConfig(command: otherCommand, configPath: otherConfigPath, resumeArg: otherResumeArg)
         settings.save()
+        // Apply font to all running terminals
+        TerminalManager.shared.setFont(name: selectedFontName, size: selectedFontSize)
     }
 }
 

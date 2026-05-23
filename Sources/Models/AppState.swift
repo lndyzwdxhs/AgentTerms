@@ -128,6 +128,17 @@ final class AppState {
         saveState()
     }
 
+    func moveAgent(fromIndex: Int, toIndex: Int, inSnapshot snapshotID: UUID, inWorkspace workspaceID: UUID) {
+        guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }),
+              let snapshotIdx = workspaces[wsIdx].snapshots.firstIndex(where: { $0.id == snapshotID }) else { return }
+        var agents = workspaces[wsIdx].snapshots[snapshotIdx].agents
+        guard fromIndex >= 0, fromIndex < agents.count, toIndex >= 0, toIndex < agents.count else { return }
+        let agent = agents.remove(at: fromIndex)
+        agents.insert(agent, at: toIndex)
+        workspaces[wsIdx].snapshots[snapshotIdx].agents = agents
+        saveState()
+    }
+
     func bindSession(agentID: UUID, sessionID: String, projectPath: String? = nil) {
         for wsIdx in workspaces.indices {
             for snapshotIdx in workspaces[wsIdx].snapshots.indices {
