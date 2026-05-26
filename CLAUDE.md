@@ -2,6 +2,47 @@
 
 This file provides context for AI coding agents working on this project.
 
+## Development Principles
+
+### 1. Think Before Coding
+
+Don't assume. Don't hide confusion. Surface tradeoffs.
+
+- State assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+### 2. Simplicity First
+
+Minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+### 3. Surgical Changes
+
+Touch only what you must. Clean up only your own mess.
+
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it — don't delete it.
+- Every changed line should trace directly to the user's request.
+
+### 4. Goal-Driven Execution
+
+Define success criteria. Loop until verified.
+
+- Transform tasks into verifiable goals before implementing.
+- For multi-step tasks, state a brief plan with verification checks.
+- Strong success criteria let you loop independently; weak criteria require clarification.
+
+---
+
 ## Project Overview
 
 AgentTerms is a macOS native app that manages multiple concurrent AI coding agent terminals. It monitors agent status, supports session resume, and provides a unified interface for developers running multiple AI agents simultaneously.
@@ -30,17 +71,32 @@ AgentTerms is a macOS native app that manages multiple concurrent AI coding agen
 
 Status is detected by reading JSONL session files from AI tools:
 - Claude Code: `{configPath}/projects/{encoded-dir}/{sessionID}.jsonl`
-- The encoding replaces `/` and `_` with `-` in the directory path
-- Metadata types to skip when parsing: `permission-mode`, `last-prompt`, `file-history-snapshot`, `attachment`
+- CodeBuddy: `~/.codebuddy/projects/{encoded-dir}/{sessionID}.jsonl`
 
-Status logic:
-- Last message `type: "assistant"` + file stale > 5s → idle (😴)
-- Last message `type: "assistant"` + contains `AskUserQuestion` tool_use → needsInput (🙋)
-- Last message `type: "assistant"` + `subtype: "permission_request"` or `"confirmation"` → needsInput (🙋)
-- Last message `type: "user"` + file updating → running (🏃)
-- Last message `type: "system"` → idle
-- No terminal running → idle (regardless of sessionID)
-- Terminal running + no sessionID → idle (waiting for first user message)
+**Path encoding differences:**
+- Claude Code: replaces `/` AND `_` with `-`
+- CodeBuddy: strips leading `/`, replaces remaining `/` with `-`, keeps `_`
+
+**JSONL format differences:**
+
+| | Claude Code | CodeBuddy |
+|---|---|---|
+| User message | `type: "user"` | `type: "message"` + `role: "user"` |
+| AI response | `type: "assistant"` | `type: "message"` + `role: "assistant"` |
+| Tool call | `tool_use` block inside assistant content | `type: "function_call"` + `name` field |
+| Tool result | `type: "user"` with tool_result | `type: "function_result"` |
+| Metadata to skip | permission-mode, last-prompt, file-history-snapshot, attachment | file-history-snapshot, ai-title |
+
+**Resume arg format:**
+- Claude Code: `--resume {sessionID}` (space separated)
+- CodeBuddy: `--resume={sessionID}` (equals sign, no space)
+
+Status logic (shared across tools):
+- Agent executing tool (not AskUserQuestion) → running (🏃)
+- AskUserQuestion / permission_request → needsInput (🙋)
+- Last message is assistant + file stale > 5s → idle (😴)
+- Last message is user + file updating → running (🏃)
+- No terminal running → idle
 
 ### Session Binding
 
@@ -105,12 +161,34 @@ Sources/
 
 ## Important Patterns
 
+### Data Flow
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
+│  SwiftUI    │────▶│   AppState   │◀────│ PersistenceService│
+│  Views      │     │ (Observable) │     │ (~/.agentterms/) │
+└─────────────┘     └──────────────┘     └─────────────────┘
+                           ▲
+                           │ updates status
+                    ┌──────────────┐
+                    │ StatusMonitor │──── reads JSONL files every 2s
+                    └──────────────┘
+                           
+┌─────────────┐     ┌──────────────────┐
+│  Terminal    │────▶│ TerminalManager  │──── caches terminal instances
+│  Views      │     │   (singleton)    │──── detects sessionID
+└─────────────┘     └──────────────────┘
+```
+
+### Key Design Decisions
+
 1. **Observable state:** `AppState` is the single source of truth, passed via SwiftUI `.environment(appState)`
 2. **Terminal persistence:** `TerminalManager` singleton caches `LocalProcessTerminalView` instances so they survive SwiftUI view lifecycle
 3. **NSView bridging:** `TerminalContainerView` (NSView) swaps terminal subviews without destroying them
 4. **Status polling:** `StatusMonitor` polls every 2 seconds, only updates if status actually changed AND new status is not `.unknown`
 5. **Localization:** Custom `L10n` helper with `String.localized` extension, supports zh-Hans and en. Bundle loaded from `Bundle.module`.
 6. **Session detection:** No timeout — polls indefinitely until JSONL file appears (user may not send first message for hours)
+7. **Status is runtime-only:** Never persisted. On app launch all agents start as `idle`, then StatusMonitor picks up real state within 2s.
 
 ## Coding Conventions
 

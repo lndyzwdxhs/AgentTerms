@@ -29,14 +29,16 @@
 "snapshots" = "Snapshots";
 
 /* Agent */
-"new_agent" = "New Agent";
+"new_agent" = "New Terminal";
 "start_agent" = "Start Agent";
 "delete_agent" = "Delete Agent";
 "open_terminal" = "Open Terminal";
 "no_agents" = "No Agents";
 "task_description" = "Agent Name";
-"agent_name" = "Agent Name";
+"agent_name" = "Terminal Name";
 "ai_tool" = "Agent Type";
+"quick_start" = "Quick Start";
+"working_dir" = "Working Directory";
 
 /* Status */
 "status_running" = "Running 🏃";

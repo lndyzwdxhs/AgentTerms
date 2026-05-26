@@ -332,39 +332,82 @@ struct CreateAgentSheet: View {
     @State private var taskDescription = ""
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            // Title
             Text(L10n.newAgent)
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
+                .padding(.top, 24)
+                .padding(.bottom, 20)
 
-            if let snapshot = appState.selectedSnapshot {
-                HStack(spacing: 4) {
-                    Image(systemName: "folder")
-                        .foregroundStyle(.secondary)
-                    Text(snapshot.worktreePath)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-            }
+            // Quick start tool picker
+            VStack(alignment: .leading, spacing: 10) {
+                Text("quick_start".localized)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-            Form {
-                Picker(L10n.aiTool, selection: $tool) {
+                HStack(spacing: 0) {
                     ForEach(AgentTool.allCases, id: \.self) { t in
-                        Label(t.rawValue, systemImage: t.icon).tag(t)
+                        Button {
+                            tool = t
+                        } label: {
+                            VStack(spacing: 6) {
+                                Image(systemName: t.icon)
+                                    .font(.system(size: 22))
+                                    .frame(height: 28)
+                                Text(t.displayName)
+                                    .font(.system(size: 11))
+                                    .lineLimit(1)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .foregroundStyle(tool == t ? Color.accentColor : Color.secondary)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(tool == t ? Color.accentColor.opacity(0.1) : Color.clear)
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-
-                TextField(L10n.agentName, text: $taskDescription)
-                    .textFieldStyle(.roundedBorder)
             }
-            .frame(width: 320)
+            .padding(.horizontal, 24)
 
-            HStack(spacing: 12) {
+            Divider()
+                .padding(.vertical, 16)
+                .padding(.horizontal, 24)
+
+            // Agent name
+            VStack(alignment: .leading, spacing: 12) {
+                TextField("", text: $taskDescription, prompt: Text(L10n.agentName).foregroundColor(.secondary.opacity(0.5)))
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 14))
+
+                // Working directory
+                if let snapshot = appState.selectedSnapshot {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("working_dir".localized)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                        Text(snapshot.worktreePath)
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Divider()
+                .padding(.vertical, 16)
+                .padding(.horizontal, 24)
+
+            // Buttons
+            HStack(spacing: 16) {
                 Button(L10n.cancel) { dismiss() }
                     .keyboardShortcut(.escape)
-                Button(L10n.startAgent) {
+                Button(L10n.create) {
                     guard !taskDescription.isEmpty,
                           let wsID = appState.selectedWorkspaceID,
                           let snapshot = appState.selectedSnapshot else { return }
@@ -381,9 +424,9 @@ struct CreateAgentSheet: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(taskDescription.isEmpty)
             }
+            .padding(.bottom, 24)
         }
-        .padding(24)
-        .frame(width: 400)
+        .frame(width: 420)
     }
 }
 

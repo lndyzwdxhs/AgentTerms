@@ -3,6 +3,7 @@ import SwiftUI
 
 enum AgentTool: String, Codable, CaseIterable {
     case claudeCode = "Claude Code"
+    case codeBuddy = "CodeBuddy"
     case codex = "Codex"
     case gemini = "Gemini"
     case other = "Other"
@@ -10,6 +11,7 @@ enum AgentTool: String, Codable, CaseIterable {
     var icon: String {
         switch self {
         case .claudeCode: return "brain"
+        case .codeBuddy: return "hammer"
         case .codex: return "terminal"
         case .gemini: return "sparkles"
         case .other: return "command"
@@ -20,6 +22,7 @@ enum AgentTool: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .claudeCode: return "Claude"
+        case .codeBuddy: return "CodeBuddy"
         case .codex: return "Codex"
         case .gemini: return "Gemini"
         case .other: return "Other"

@@ -10,6 +10,7 @@ final class PTYService {
     static func commandForTool(_ tool: AgentTool) -> String {
         switch tool {
         case .claudeCode: return "claude"
+        case .codeBuddy: return "codebuddy"
         case .codex: return "codex"
         case .gemini: return "gemini"
         case .other: return ""

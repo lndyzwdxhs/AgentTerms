@@ -59,6 +59,8 @@ final class StatusMonitor {
         switch agent.tool {
         case .claudeCode:
             return detectClaudeCodeStatus(for: agent)
+        case .codeBuddy:
+            return detectCodeBuddyStatus(for: agent)
         case .codex:
             return detectCodexStatus(for: agent)
         default:
@@ -96,6 +98,135 @@ final class StatusMonitor {
         return parseSessionFile(at: sessionFile)
     }
 
+    // MARK: - CodeBuddy Status Detection
+
+    private func detectCodeBuddyStatus(for agent: Agent) -> AgentStatus {
+        guard let sessionID = agent.sessionID, !sessionID.isEmpty else {
+            return .idle
+        }
+
+        // Use persisted projectPath if available, otherwise compute it
+        let sessionFile: URL
+        if let projectPath = agent.projectPath, !projectPath.isEmpty {
+            sessionFile = URL(fileURLWithPath: projectPath)
+                .appendingPathComponent("\(sessionID).jsonl")
+        } else {
+            let configBase = resolveConfigPath(for: .codeBuddy)
+            // CodeBuddy encodes path by replacing / with - but keeps _
+            let encodedDir = Self.encodeCodeBuddyProjectDirName(workingDirectory: agent.workingDirectory)
+            sessionFile = URL(fileURLWithPath: configBase)
+                .appendingPathComponent("projects")
+                .appendingPathComponent(encodedDir)
+                .appendingPathComponent("\(sessionID).jsonl")
+        }
+
+        guard FileManager.default.fileExists(atPath: sessionFile.path) else {
+            return .running
+        }
+
+        return parseCodeBuddySessionFile(at: sessionFile)
+    }
+
+    /// Encode working directory for CodeBuddy's project dir format
+    /// Strips leading /, replaces remaining / with -, keeps _
+    static func encodeCodeBuddyProjectDirName(workingDirectory: String) -> String {
+        var path = workingDirectory
+        if path.hasPrefix("/") {
+            path = String(path.dropFirst())
+        }
+        return path.replacingOccurrences(of: "/", with: "-")
+    }
+
+    private func parseCodeBuddySessionFile(at url: URL) -> AgentStatus {
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else {
+            return .unknown
+        }
+        defer { fileHandle.closeFile() }
+
+        let fileSize = fileHandle.seekToEndOfFile()
+        let readSize: UInt64 = min(fileSize, 8192)
+        fileHandle.seek(toFileOffset: fileSize - readSize)
+        guard let data = try? fileHandle.readToEnd(),
+              let content = String(data: data, encoding: .utf8) else {
+            return .unknown
+        }
+
+        let lines = content.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        guard !lines.isEmpty else { return .unknown }
+
+        // CodeBuddy metadata types to skip
+        let metadataTypes: Set<String> = ["file-history-snapshot", "ai-title"]
+        var lastMessageJson: [String: Any]?
+
+        for line in lines.reversed() {
+            guard let jsonData = line.data(using: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                  let type = json["type"] as? String else { continue }
+
+            if !metadataTypes.contains(type) {
+                lastMessageJson = json
+                break
+            }
+        }
+
+        guard let json = lastMessageJson,
+              let type = json["type"] as? String else {
+            return .unknown
+        }
+
+        // Get file modification time for staleness check
+        let elapsed: TimeInterval = {
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+               let modDate = attrs[.modificationDate] as? Date {
+                return Date().timeIntervalSince(modDate)
+            }
+            return 999
+        }()
+
+        switch type {
+        case "message":
+            // CodeBuddy uses type:"message" with role field
+            let role = json["role"] as? String ?? ""
+            if role == "user" {
+                return elapsed > 60 ? .idle : .running
+            } else if role == "assistant" {
+                // Check for tool_use in content
+                if let content = json["content"] as? [[String: Any]] {
+                    for block in content {
+                        if block["type"] as? String == "tool_use" {
+                            let toolName = block["name"] as? String ?? ""
+                            if toolName == "AskUserQuestion" || toolName == "TodoQuery" {
+                                return .needsInput
+                            }
+                            return .running
+                        }
+                    }
+                }
+                return elapsed <= 5 ? .running : .idle
+            }
+            return elapsed <= 5 ? .running : .idle
+
+        case "function_call":
+            // Check if the tool is asking user a question
+            let toolName = json["name"] as? String ?? ""
+            if toolName == "AskUserQuestion" || toolName == "TodoQuery" {
+                return .needsInput
+            }
+            // Agent is executing a tool — running
+            return .running
+
+        case "function_result":
+            // Tool result received — agent is processing
+            return elapsed > 30 ? .idle : .running
+
+        case "error":
+            return .error
+
+        default:
+            return elapsed > 10 ? .idle : .running
+        }
+    }
+
     // MARK: - Codex Status Detection
 
     private func detectCodexStatus(for agent: Agent) -> AgentStatus {
@@ -117,6 +248,8 @@ final class StatusMonitor {
         switch tool {
         case .claudeCode:
             return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude").path
+        case .codeBuddy:
+            return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codebuddy").path
         default:
             return ""
         }

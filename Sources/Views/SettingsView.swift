@@ -37,6 +37,9 @@ struct SettingsView: View {
     @State private var claudeCommand = ""
     @State private var claudeConfigPath = ""
     @State private var claudeResumeArg = ""
+    @State private var codeBuddyCommand = ""
+    @State private var codeBuddyConfigPath = ""
+    @State private var codeBuddyResumeArg = ""
     @State private var codexCommand = ""
     @State private var codexConfigPath = ""
     @State private var codexResumeArg = ""
@@ -268,6 +271,8 @@ struct SettingsView: View {
         VStack(spacing: 20) {
             ToolSection(title: "Claude Code", command: $claudeCommand, configPath: $claudeConfigPath, resumeArg: $claudeResumeArg, commandPlaceholder: "claude", configPlaceholder: "~/.claude", resumePlaceholder: "--resume")
 
+            ToolSection(title: "CodeBuddy", command: $codeBuddyCommand, configPath: $codeBuddyConfigPath, resumeArg: $codeBuddyResumeArg, commandPlaceholder: "codebuddy", configPlaceholder: "~/.codebuddy", resumePlaceholder: "--resume=")
+
             ToolSection(title: "Codex", command: $codexCommand, configPath: $codexConfigPath, resumeArg: $codexResumeArg, commandPlaceholder: "codex", configPlaceholder: "", resumePlaceholder: "resume")
 
             ToolSection(title: "Gemini", command: $geminiCommand, configPath: $geminiConfigPath, resumeArg: $geminiResumeArg, commandPlaceholder: "gemini", configPlaceholder: "", resumePlaceholder: "")
@@ -286,6 +291,9 @@ struct SettingsView: View {
         claudeCommand = settings.toolConfigs[.claudeCode]?.command ?? ""
         claudeConfigPath = settings.toolConfigs[.claudeCode]?.configPath ?? ""
         claudeResumeArg = settings.toolConfigs[.claudeCode]?.resumeArg ?? ""
+        codeBuddyCommand = settings.toolConfigs[.codeBuddy]?.command ?? ""
+        codeBuddyConfigPath = settings.toolConfigs[.codeBuddy]?.configPath ?? ""
+        codeBuddyResumeArg = settings.toolConfigs[.codeBuddy]?.resumeArg ?? ""
         codexCommand = settings.toolConfigs[.codex]?.command ?? ""
         codexConfigPath = settings.toolConfigs[.codex]?.configPath ?? ""
         codexResumeArg = settings.toolConfigs[.codex]?.resumeArg ?? ""
@@ -303,6 +311,7 @@ struct SettingsView: View {
         settings.terminalFontName = selectedFontName
         settings.terminalFontSize = selectedFontSize
         settings.toolConfigs[.claudeCode] = ToolConfig(command: claudeCommand, configPath: claudeConfigPath, resumeArg: claudeResumeArg)
+        settings.toolConfigs[.codeBuddy] = ToolConfig(command: codeBuddyCommand, configPath: codeBuddyConfigPath, resumeArg: codeBuddyResumeArg)
         settings.toolConfigs[.codex] = ToolConfig(command: codexCommand, configPath: codexConfigPath, resumeArg: codexResumeArg)
         settings.toolConfigs[.gemini] = ToolConfig(command: geminiCommand, configPath: geminiConfigPath, resumeArg: geminiResumeArg)
         settings.toolConfigs[.other] = ToolConfig(command: otherCommand, configPath: otherConfigPath, resumeArg: otherResumeArg)

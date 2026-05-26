@@ -55,6 +55,7 @@ final class Settings {
         // Defaults
         switch tool {
         case .claudeCode: return "--resume"
+        case .codeBuddy: return "--resume="
         case .codex: return "resume"
         default: return ""
         }

@@ -58,7 +58,12 @@ final class TerminalManager {
             let effectiveCommand: String
             if let sid = sessionID, !sid.isEmpty, !resumeArg.isEmpty {
                 // Resume mode: append resume arg with session ID
-                effectiveCommand = "\(command) \(resumeArg) \(sid)"
+                // Support both "--resume ID" and "--resume=ID" formats
+                if resumeArg.hasSuffix("=") {
+                    effectiveCommand = "\(command) \(resumeArg)\(sid)"
+                } else {
+                    effectiveCommand = "\(command) \(resumeArg) \(sid)"
+                }
             } else {
                 // First launch: normal command, then detect session
                 effectiveCommand = command
@@ -148,7 +153,13 @@ final class TerminalManager {
         } else {
             base = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude").path
         }
-        let encodedDir = StatusMonitor.encodeProjectDirName(workingDirectory: workingDirectory)
+        // Use appropriate encoding based on config path
+        let encodedDir: String
+        if base.contains(".codebuddy") {
+            encodedDir = StatusMonitor.encodeCodeBuddyProjectDirName(workingDirectory: workingDirectory)
+        } else {
+            encodedDir = StatusMonitor.encodeProjectDirName(workingDirectory: workingDirectory)
+        }
         let projectDir = URL(fileURLWithPath: base)
             .appendingPathComponent("projects")
             .appendingPathComponent(encodedDir)
