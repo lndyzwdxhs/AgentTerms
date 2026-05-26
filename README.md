@@ -5,113 +5,144 @@
 </p>
 
 <p align="center">
-  A macOS native command center for managing multiple concurrent AI coding agents (Claude Code, Codex, Gemini, etc.) — built entirely with AI.
+  <strong>The command center for AI-native developers.</strong><br>
+  Manage multiple AI coding agents in one place — built entirely by AI, for humans who ship with AI.
 </p>
 
-## Why AgentTerms?
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS%2014%2B-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/swift-5.9%2B-orange" alt="Swift">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/built%20with-AI-purple" alt="Built with AI">
+</p>
 
-In the AI coding era, developers run multiple AI agents simultaneously across different projects and branches. AgentTerms solves the pain of:
+---
 
-- **Lost context** — Can't tell which terminal is doing what
-- **Missed prompts** — AI needs your input but you don't notice
-- **Terminal chaos** — Switching between 5+ terminals constantly
+## Philosophy
+
+> In 2026, the best developers don't write code alone — they orchestrate AI agents.
+
+AgentTerms is designed around one belief: **your attention is the bottleneck, not your typing speed.**
+
+When you're running 5 AI agents across 3 branches, the real problem isn't "how do I code faster" — it's:
+
+- Which agent just finished and needs my decision?
+- Which one is stuck waiting for input I forgot about?
+- Where the hell is that terminal I was using 20 minutes ago?
+
+AgentTerms gives you **ambient awareness** of all your AI agents without context-switching. One glance, you know what's happening everywhere.
+
+### Design Principles
+
+- **Passive observation** — We read session files. We never inject into your agent processes. Zero interference.
+- **Workspace as context** — Every repo gets a workspace. Every feature branch gets a snapshot. Every tool gets a terminal. Clean isolation.
+- **Status over logs** — You don't need to read 500 lines of output. You need to know: running, idle, or needs me. Three states, one glance.
+- **Tool agnostic** — Claude Code, CodeBuddy, Codex, Gemini, or your custom shell script. If it runs in a terminal, we manage it.
+
+---
 
 ## Features
 
-- **Multi-workspace management** — Organize by Git repository
-- **Floor system** — Each floor maps to a Git worktree/branch, fully isolated
-- **Real-time status detection** — Monitors AI agent state via session files (running/needs input/idle)
-- **Session persistence** — Resume conversations with `--resume` support
-- **3D Floor Switcher** — Mission Control-style 3D view to switch between floors
-- **Terminal embedding** — Full interactive terminal with SwiftTerm
-- **Keyboard shortcuts** — `⌘1-9` to switch agents instantly
-- **System notifications** — Get notified when an agent needs your attention
-- **Multi-language** — Chinese (default) and English
+| Category | What you get |
+|----------|-------------|
+| **Multi-agent** | Run Claude Code + CodeBuddy + Shell side by side, switch with ⌘1-9 |
+| **Real-time status** | 🏃 Running / 🙋 Needs Input / 😴 Idle — detected passively from session files |
+| **Workspace isolation** | Git worktrees per feature branch, fully isolated snapshots |
+| **Session resume** | Close and reopen — conversations pick up exactly where you left off |
+| **Terminal theming** | 8 built-in themes + custom font/size with live preview |
+| **Branch management** | See and switch your base branch without leaving the app |
+| **Drag reorder** | Arrange agent tabs however you think |
+| **Notifications** | macOS alerts when an agent raises its hand 🙋 |
+| **VS Code integration** | One click to open the working directory |
+| **3D Switcher** | Mission Control-style snapshot switching |
 
 ## Status Detection
 
-AgentTerms passively reads AI tool session files to detect agent state:
+AgentTerms watches AI tool session files — never touches your agent processes:
 
-| Status | Meaning | Trigger |
-|--------|---------|---------|
-| 🏃 Running | Agent is thinking/outputting | Session file being written |
-| 🙋 Hand Up | Agent is blocked, needs user action | `AskUserQuestion` tool_use detected |
-| 😴 Idle | Agent finished, waiting for next instruction | Session file stale > 5s |
+```
+┌─────────────────────────────────────────────────┐
+│  JSONL session file (written by AI tool)        │
+│  ~/.claude/projects/.../session.jsonl           │
+└──────────────────────┬──────────────────────────┘
+                       │ poll every 2s (read-only)
+                       ▼
+┌─────────────────────────────────────────────────┐
+│  StatusMonitor → parse last message → status    │
+│  tool_use detected? → 🏃 running               │
+│  AskUserQuestion? → 🙋 needs input             │
+│  file stale > 5s? → 😴 idle                    │
+└─────────────────────────────────────────────────┘
+```
 
-## Requirements
+## Supported Tools
 
-- macOS 14.0+
-- Swift 5.9+
-- Command Line Tools for Xcode
+| Tool | Command | Resume | Status Detection |
+|------|---------|--------|-----------------|
+| Claude Code | `claude` | `--resume {id}` | ✅ Full |
+| CodeBuddy | `codebuddy` | `--resume={id}` | ✅ Full |
+| Codex | `codex` | `resume` | 🚧 Planned |
+| Gemini | `gemini` | — | 🚧 Planned |
+| Shell | any command | — | — |
 
-## Build & Run
+## Quick Start
 
 ```bash
-# Build
-make build
+# Clone
+git clone https://github.com/lndyzwdxhs/AgentTerms.git
+cd AgentTerms
 
-# Run (opens .app bundle)
+# Build & Run
 make run
 
-# Clean build
-make clean
+# Or just build
+make build
+
+# Package for distribution
+make dmg
 ```
 
-Or manually:
-
-```bash
-swift build
-# Copy binary to .app bundle and open
-```
+**Requirements:** macOS 14.0+ / Swift 5.9+ / Command Line Tools for Xcode
 
 ## Configuration
 
-Settings are stored in `~/.agentterms/`:
+All settings live in `~/.agentterms/`:
 
-- `config.json` — Workspaces, floors, agents, session bindings
-- `settings.json` — Tool commands, config paths, resume args, language
-
-### Tool Configuration
-
-| Tool | Command | Config Path | Resume Arg |
-|------|---------|-------------|------------|
-| Claude Code | `claude` | `~/.claude` | `--resume` |
-| Codex | `codex` | | `resume` |
-| Gemini | `gemini` | | |
+```
+~/.agentterms/
+├── config.json      # Workspaces, snapshots, agents, sessions
+└── settings.json    # Tool commands, theme, font, language
+```
 
 ## Architecture
 
 ```
 Sources/
-├── MastApp.swift              # App entry point
-├── Models/
-│   ├── Agent.swift            # Agent model + status enum
-│   ├── AppState.swift         # Observable app state
-│   ├── Floor.swift            # Floor (git worktree)
-│   ├── Settings.swift         # Global tool configs
-│   └── Workspace.swift        # Workspace (git repo)
-├── Services/
-│   ├── GitService.swift       # Git worktree operations
-│   ├── NotificationService.swift  # macOS notifications
-│   ├── PersistenceService.swift   # JSON persistence
-│   ├── StatusMonitor.swift    # Session file polling
-│   └── TerminalManager.swift  # Terminal lifecycle + session detection
-├── Utilities/
-│   ├── KeyboardShortcuts.swift
-│   ├── L10n.swift             # Localization helper
-│   ├── TerminalRepresentable.swift  # SwiftUI ↔ AppKit bridge
-│   └── TerminalTheme.swift    # Terminal color schemes
-└── Views/
-    ├── AgentGridView.swift    # Agent cards + terminal
-    ├── ContentView.swift      # Main layout
-    ├── FloorSwitcherView.swift  # 3D floor switcher
-    └── ...
+├── AgentTermsApp.swift              # Entry point
+├── Models/                          # Data layer
+│   ├── AppState.swift               # Single source of truth (@Observable)
+│   ├── Agent.swift / Snapshot.swift / Workspace.swift
+│   └── Settings.swift               # Persisted preferences
+├── Services/                        # Business logic
+│   ├── StatusMonitor.swift          # JSONL polling (Claude Code + CodeBuddy)
+│   ├── TerminalManager.swift        # Terminal lifecycle + session detection
+│   ├── GitService.swift             # Worktree & branch operations
+│   └── PersistenceService.swift     # JSON read/write
+├── Views/                           # UI layer (SwiftUI + AppKit bridge)
+└── Utilities/                       # Theme, localization, keyboard shortcuts
 ```
 
 ## AI-Native Development
 
-This project is built entirely with AI coding agents. See [CLAUDE.md](CLAUDE.md) for AI development guidelines.
+This entire project is built by AI coding agents. The codebase is designed to be **AI-friendly**:
+
+- `CLAUDE.md` contains full project context — any AI agent can pick up development immediately
+- Conventional commits for clear history
+- Simple `make` commands — no complex build toolchain
+- Single-file architecture docs — no scattered documentation to desync
+
+See [CLAUDE.md](CLAUDE.md) for the complete AI development guide.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — Use it, fork it, ship it.

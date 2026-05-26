@@ -21,9 +21,9 @@ final class Settings {
             applyLanguage()
         }
     }
-    var terminalTheme: TerminalTheme = .dracula
-    var terminalFontName: String = "" // empty = system monospace
-    var terminalFontSize: CGFloat = 13
+    var terminalTheme: TerminalTheme = .kittyLowContrast
+    var terminalFontName: String = "Menlo" // empty = system monospace
+    var terminalFontSize: CGFloat = 20
 
     private let settingsURL: URL = {
         PersistenceService.baseDir.appendingPathComponent("settings.json")
@@ -122,15 +122,15 @@ struct ToolConfig: Codable {
 private struct SettingsData: Codable {
     var toolConfigs: [AgentTool: ToolConfig] = [:]
     var language: AppLanguage = .zhHans
-    var terminalTheme: TerminalTheme = .dracula
-    var terminalFontName: String = ""
-    var terminalFontSize: CGFloat = 13
+    var terminalTheme: TerminalTheme = .kittyLowContrast
+    var terminalFontName: String = "Menlo"
+    var terminalFontSize: CGFloat = 20
 
     enum CodingKeys: String, CodingKey {
         case toolConfigs, language, terminalTheme, terminalFontName, terminalFontSize
     }
 
-    init(toolConfigs: [AgentTool: ToolConfig] = [:], language: AppLanguage = .zhHans, terminalTheme: TerminalTheme = .dracula, terminalFontName: String = "", terminalFontSize: CGFloat = 13) {
+    init(toolConfigs: [AgentTool: ToolConfig] = [:], language: AppLanguage = .zhHans, terminalTheme: TerminalTheme = .kittyLowContrast, terminalFontName: String = "Menlo", terminalFontSize: CGFloat = 20) {
         self.toolConfigs = toolConfigs
         self.language = language
         self.terminalTheme = terminalTheme
@@ -142,8 +142,8 @@ private struct SettingsData: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         toolConfigs = try container.decodeIfPresent([AgentTool: ToolConfig].self, forKey: .toolConfigs) ?? [:]
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .zhHans
-        terminalTheme = try container.decodeIfPresent(TerminalTheme.self, forKey: .terminalTheme) ?? .dracula
-        terminalFontName = try container.decodeIfPresent(String.self, forKey: .terminalFontName) ?? ""
-        terminalFontSize = try container.decodeIfPresent(CGFloat.self, forKey: .terminalFontSize) ?? 13
+        terminalTheme = try container.decodeIfPresent(TerminalTheme.self, forKey: .terminalTheme) ?? .kittyLowContrast
+        terminalFontName = try container.decodeIfPresent(String.self, forKey: .terminalFontName) ?? "Menlo"
+        terminalFontSize = try container.decodeIfPresent(CGFloat.self, forKey: .terminalFontSize) ?? 20
     }
 }

@@ -29,9 +29,9 @@ struct SettingsView: View {
 
     // General
     @State private var selectedLanguage: AppLanguage = .zhHans
-    @State private var selectedTheme: TerminalTheme = .dracula
-    @State private var selectedFontName: String = ""
-    @State private var selectedFontSize: CGFloat = 13
+    @State private var selectedTheme: TerminalTheme = .kittyLowContrast
+    @State private var selectedFontName: String = "Menlo"
+    @State private var selectedFontSize: CGFloat = 20
 
     // Tool configs
     @State private var claudeCommand = ""

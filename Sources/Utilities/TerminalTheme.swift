@@ -27,6 +27,7 @@ struct TerminalThemeColors {
 
 /// Built-in terminal themes
 enum TerminalTheme: String, CaseIterable, Codable {
+    case kittyLowContrast = "Kitty Low Contrast"
     case system = "System"
     case dracula = "Dracula"
     case oneDark = "One Dark"
@@ -37,6 +38,7 @@ enum TerminalTheme: String, CaseIterable, Codable {
 
     var colors: TerminalThemeColors {
         switch self {
+        case .kittyLowContrast: return Self.kittyLowContrastColors
         case .system: return Self.systemColors
         case .dracula: return Self.draculaColors
         case .oneDark: return Self.oneDarkColors
@@ -48,6 +50,25 @@ enum TerminalTheme: String, CaseIterable, Codable {
     }
 
     // MARK: - Theme Definitions
+
+    private static var kittyLowContrastColors: TerminalThemeColors {
+        TerminalThemeColors(
+            foreground: NSColor(hex: 0xFFFFFF),
+            background: NSColor(hex: 0x333333),
+            cursor: NSColor(hex: 0xCCCCCC),
+            selection: NSColor(hex: 0x264F78),
+            ansiColors: [
+                NSColor(hex: 0x000000), NSColor(hex: 0xCC0403),
+                NSColor(hex: 0x19CB00), NSColor(hex: 0xCECB00),
+                NSColor(hex: 0x0D73CC), NSColor(hex: 0xCB1ED1),
+                NSColor(hex: 0x0DCDCD), NSColor(hex: 0xDDDDDD),
+                NSColor(hex: 0x767676), NSColor(hex: 0xF2201F),
+                NSColor(hex: 0x23FD00), NSColor(hex: 0xFFFD00),
+                NSColor(hex: 0x1A8FFF), NSColor(hex: 0xFD28FF),
+                NSColor(hex: 0x14FFFF), NSColor(hex: 0xFFFFFF)
+            ]
+        )
+    }
 
     private static var systemColors: TerminalThemeColors {
         TerminalThemeColors(
