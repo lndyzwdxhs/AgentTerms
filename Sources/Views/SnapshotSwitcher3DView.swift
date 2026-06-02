@@ -9,6 +9,7 @@ struct SnapshotSwitcher3DView: View {
     @State private var selectedIndex: Int = 0
     @Binding var showCreateSnapshot: Bool
     @State private var snapshotToDelete: Snapshot?
+    @State private var cachedImages: [UUID: NSImage] = [:]
 
     private var snapshots: [Snapshot] {
         appState.selectedWorkspace?.snapshots ?? []
@@ -33,7 +34,10 @@ struct SnapshotSwitcher3DView: View {
 
                     ZStack {
                         ForEach(Array(snapshots.enumerated()), id: \.element.id) { index, snapshot in
-                            snapshotCardView(snapshot: snapshot, index: index, cardWidth: cardWidth, cardHeight: cardHeight, geoHeight: geo.size.height)
+                            // Only render cards within ±3 of selection for performance
+                            if abs(index - selectedIndex) <= 3 {
+                                snapshotCardView(snapshot: snapshot, index: index, cardWidth: cardWidth, cardHeight: cardHeight, geoHeight: geo.size.height)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -60,6 +64,12 @@ struct SnapshotSwitcher3DView: View {
                             }
                         }
                         .contextMenu {
+                            Button(snapshot.isCompleted ? L10n.markIncomplete : L10n.markCompleted) {
+                                if let wsID = appState.selectedWorkspaceID {
+                                    appState.toggleSnapshotCompleted(id: snapshot.id, in: wsID)
+                                }
+                            }
+                            Divider()
                             Button(L10n.deleteSnapshot, role: .destructive) {
                                 snapshotToDelete = snapshot
                             }
@@ -94,6 +104,7 @@ struct SnapshotSwitcher3DView: View {
                let idx = snapshots.firstIndex(where: { $0.id == currentID }) {
                 selectedIndex = idx
             }
+            cacheAllImages()
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 appeared = true
             }
@@ -111,7 +122,7 @@ struct SnapshotSwitcher3DView: View {
                     newIndex = min(snapshots.count - 1, selectedIndex + 1)
                 }
                 if newIndex != selectedIndex {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    withAnimation(.interpolatingSpring(stiffness: 300, damping: 25)) {
                         selectedIndex = newIndex
                     }
                 }
@@ -133,12 +144,13 @@ struct SnapshotSwitcher3DView: View {
 
         Snapshot3DCard(snapshot: snapshot, snapshotImage: snapshotForSnapshot(snapshot), isSelected: isCurrentSelected)
             .frame(width: cardWidth, height: cardHeight)
+            .drawingGroup()
             .rotation3DEffect(.degrees(appeared ? 45 : 0), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
             .offset(x: 0, y: yOffset)
             .scaleEffect(scale)
             .opacity(max(0.25, cardOpacity))
             .zIndex(Double(snapshots.count - abs(index - selectedIndex)))
-            .shadow(color: .black.opacity(isCurrentSelected ? 0.25 : 0.1), radius: isCurrentSelected ? 30 : 15, y: 20)
+            .shadow(color: .black.opacity(isCurrentSelected ? 0.2 : 0), radius: isCurrentSelected ? 20 : 0, y: 10)
             .onTapGesture(count: 2) {
                 // Double click: enter snapshot
                 appState.selectedSnapshotID = snapshot.id
@@ -150,7 +162,7 @@ struct SnapshotSwitcher3DView: View {
                     selectedIndex = index
                 }
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: selectedIndex)
+            .animation(.interpolatingSpring(stiffness: 300, damping: 25), value: selectedIndex)
     }
 
     private func dismiss() {
@@ -170,8 +182,18 @@ struct SnapshotSwitcher3DView: View {
     }
 
     private func snapshotForSnapshot(_ snapshot: Snapshot) -> NSImage? {
-        guard let agent = snapshot.agents.first else { return nil }
-        return TerminalManager.shared.snapshot(for: agent.id)
+        return cachedImages[snapshot.id]
+    }
+
+    private func cacheAllImages() {
+        var images: [UUID: NSImage] = [:]
+        for snapshot in snapshots {
+            if let agent = snapshot.agents.first,
+               let img = TerminalManager.shared.snapshot(for: agent.id) {
+                images[snapshot.id] = img
+            }
+        }
+        cachedImages = images
     }
 }
 
@@ -264,6 +286,19 @@ struct Snapshot3DCard: View {
                     ),
                     lineWidth: isSelected ? 1.5 : 0.5
                 )
+
+            // Completed stamp
+            if snapshot.isCompleted {
+                VStack {
+                    HStack {
+                        Spacer()
+                        CompletedStamp()
+                            .padding(.top, 12)
+                            .padding(.trailing, 12)
+                    }
+                    Spacer()
+                }
+            }
         }
     }
 }
@@ -325,18 +360,17 @@ struct ScrollWheelCatcher: NSViewRepresentable {
 
 class ScrollWheelNSView: NSView {
     var onScroll: ((CGFloat) -> Void)?
-    private var lastScrollTime: Date = .distantPast
+    private var accumulatedDelta: CGFloat = 0
+    private let threshold: CGFloat = 8
 
     override func scrollWheel(with event: NSEvent) {
-        let now = Date()
-        guard now.timeIntervalSince(lastScrollTime) > 0.15 else { return }
-
         let delta = event.scrollingDeltaY
-        if abs(delta) > 0.5 {
-            lastScrollTime = now
-            DispatchQueue.main.async {
-                self.onScroll?(delta)
-            }
+        accumulatedDelta += delta
+
+        if abs(accumulatedDelta) >= threshold {
+            let direction = accumulatedDelta
+            accumulatedDelta = 0
+            onScroll?(direction)
         }
     }
 

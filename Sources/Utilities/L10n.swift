@@ -38,6 +38,8 @@ enum L10n {
     static var startAgent: String { "start_agent".localized }
     static var deleteAgent: String { "delete_agent".localized }
     static var openTerminal: String { "open_terminal".localized }
+    static var reopenTerminal: String { "reopen_terminal".localized }
+    static var editSessionID: String { "edit_session_id".localized }
     static var noAgents: String { "no_agents".localized }
     static var taskDescription: String { "task_description".localized }
     static var agentName: String { "agent_name".localized }
@@ -89,6 +91,11 @@ enum L10n {
     static var fontSize: String { "font_size".localized }
     static var systemDefault: String { "system_default".localized }
     static var copyOnSelect: String { "copy_on_select".localized }
+
+    // MARK: - Snapshot Status
+    static var completed: String { "completed".localized }
+    static var markCompleted: String { "mark_completed".localized }
+    static var markIncomplete: String { "mark_incomplete".localized }
 
     // MARK: - Notifications
     static var notifNeedsInput: String { "notif_needs_input".localized }

@@ -124,6 +124,10 @@ struct SnapshotToolbarView: View {
                 }
                 .buttonStyle(.plain)
 
+                if snapshot.isCompleted {
+                    CompletedStamp()
+                }
+
                 HStack(spacing: 3) {
                     Image(systemName: "arrow.triangle.branch")
                         .font(.system(size: 11))

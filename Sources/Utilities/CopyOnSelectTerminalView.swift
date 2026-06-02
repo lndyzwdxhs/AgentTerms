@@ -7,10 +7,26 @@ final class CopyOnSelectTerminalView: LocalProcessTerminalView {
 
     // MARK: - Copy on Select
 
+    /// Debounce interval — copy only after selection stops changing for this long
+    private let copyDebounceInterval: TimeInterval = 0.25
+    private var copyDebounceWorkItem: DispatchWorkItem?
+
     override func selectionChanged(source: Terminal) {
         super.selectionChanged(source: source)
         guard copyOnSelectEnabled else { return }
-        copy(self)
+
+        // Debounce: cancel any pending copy and schedule a new one. This avoids
+        // copying every intermediate selection state during a drag, only copying
+        // once the selection settles.
+        copyDebounceWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            // Only copy when there is a non-empty selection
+            guard self.selectedRange().length > 0 else { return }
+            self.copy(self)
+        }
+        copyDebounceWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + copyDebounceInterval, execute: work)
     }
 
     // MARK: - IME Marked Text (inline pre-edit display)

@@ -27,6 +27,10 @@ struct SnapshotGridView: View {
                                         appState.selectedSnapshotID = snapshot.id
                                     }
                                     Divider()
+                                    Button(snapshot.isCompleted ? L10n.markIncomplete : L10n.markCompleted) {
+                                        appState.toggleSnapshotCompleted(id: snapshot.id, in: workspace.id)
+                                    }
+                                    Divider()
                                     Button(L10n.deleteSnapshot, role: .destructive) {
                                         appState.removeSnapshot(id: snapshot.id, from: workspace.id)
                                     }
@@ -118,7 +122,30 @@ struct SnapshotCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(snapshot.aggregatedStatus == .needsInput ? Color.red.opacity(0.5) : Color.clear, lineWidth: 2)
         )
+        .overlay(alignment: .topTrailing) {
+            if snapshot.isCompleted {
+                CompletedStamp()
+                    .padding(.top, 8)
+                    .padding(.trailing, 8)
+            }
+        }
         .shadow(color: .black.opacity(0.05), radius: 3, y: 2)
+    }
+}
+
+/// A stamp-style "completed" badge
+struct CompletedStamp: View {
+    var body: some View {
+        Text(L10n.completed)
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(.red.opacity(0.85))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .stroke(.red.opacity(0.85), lineWidth: 1.5)
+            )
+            .rotationEffect(.degrees(-15))
     }
 }
 

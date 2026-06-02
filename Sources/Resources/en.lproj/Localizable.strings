@@ -33,6 +33,8 @@
 "start_agent" = "Start Agent";
 "delete_agent" = "Delete Agent";
 "open_terminal" = "Open Terminal";
+"reopen_terminal" = "Reopen Terminal";
+"edit_session_id" = "Edit Session ID";
 "no_agents" = "No Agents";
 "task_description" = "Agent Name";
 "agent_name" = "Terminal Name";
@@ -70,6 +72,11 @@
 "command" = "Command";
 "config_path" = "Config Path";
 "resume_arg" = "Resume Arg";
+
+/* Snapshot Status */
+"completed" = "DONE";
+"mark_completed" = "Mark as Completed";
+"mark_incomplete" = "Unmark Completed";
 
 /* Terminal */
 "back" = "Back";

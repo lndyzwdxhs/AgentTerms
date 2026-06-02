@@ -5,6 +5,7 @@ struct AgentGridView: View {
     @Environment(Settings.self) private var settings
     @State private var showCreateAgent = false
     @State private var draggedAgentID: UUID?
+    @State private var editingSessionAgent: Agent?
 
     private var snapshot: Snapshot? {
         appState.selectedSnapshot
@@ -68,8 +69,13 @@ struct AgentGridView: View {
                                 appState.selectedAgentID = agent.id
                             }
                             .contextMenu {
-                                Button(L10n.openTerminal) {
+                                Button(L10n.reopenTerminal) {
+                                    TerminalManager.shared.remove(agentID: agent.id)
                                     appState.selectedAgentID = agent.id
+                                }
+                                Divider()
+                                Button(L10n.editSessionID) {
+                                    editingSessionAgent = agent
                                 }
                                 Divider()
                                 Button(L10n.deleteAgent, role: .destructive) {
@@ -142,6 +148,9 @@ struct AgentGridView: View {
             }
             .sheet(isPresented: $showCreateAgent) {
                 CreateAgentSheet()
+            }
+            .sheet(item: $editingSessionAgent) { agent in
+                EditSessionIDSheet(agent: agent)
             }
             .onAppear {
                 autoSelectAndWarmTerminals(snapshot: snapshot)
@@ -263,6 +272,43 @@ struct AddAgentCard: View {
         }
         .scaleEffect(isHovered ? 0.95 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isHovered)
+    }
+}
+
+// MARK: - Edit Session ID Sheet
+
+struct EditSessionIDSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    let agent: Agent
+    @State private var sessionID: String = ""
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text(L10n.editSessionID)
+                .font(.headline)
+
+            TextField("Session ID", text: $sessionID)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 360)
+
+            HStack {
+                Button(L10n.cancel) { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button(L10n.save) {
+                    appState.bindSession(agentID: agent.id, sessionID: sessionID)
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(sessionID == (agent.sessionID ?? ""))
+            }
+        }
+        .padding(24)
+        .frame(width: 420)
+        .onAppear {
+            sessionID = agent.sessionID ?? ""
+        }
     }
 }
 

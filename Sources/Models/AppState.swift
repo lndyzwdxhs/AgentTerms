@@ -121,6 +121,13 @@ final class AppState {
 
     // MARK: - Snapshot Operations
 
+    func toggleSnapshotCompleted(id: UUID, in workspaceID: UUID) {
+        guard let wsIdx = workspaces.firstIndex(where: { $0.id == workspaceID }),
+              let sIdx = workspaces[wsIdx].snapshots.firstIndex(where: { $0.id == id }) else { return }
+        workspaces[wsIdx].snapshots[sIdx].isCompleted.toggle()
+        saveState()
+    }
+
     func addSnapshot(name: String, branch: String, isNewBranch: Bool, to workspaceID: UUID) throws {
         guard let idx = workspaces.firstIndex(where: { $0.id == workspaceID }) else { return }
         let workspace = workspaces[idx]
