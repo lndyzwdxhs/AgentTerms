@@ -66,6 +66,16 @@ struct ContentView: View {
             .sheet(isPresented: $showCreateAgent) {
                 CreateAgentSheet()
             }
+            .onChange(of: appState.selectedSnapshotID) { oldID, newID in
+                // Remember agent selection for the snapshot we're leaving,
+                // but only if staying in the same workspace (avoid cross-workspace pollution)
+                if let oldID, let newID,
+                   let ws = appState.selectedWorkspace,
+                   ws.snapshots.contains(where: { $0.id == oldID }),
+                   ws.snapshots.contains(where: { $0.id == newID }) {
+                    appState.rememberAgentSelection(for: oldID)
+                }
+            }
     }
     private func openInVSCode(path: String) {
         let process = Process()

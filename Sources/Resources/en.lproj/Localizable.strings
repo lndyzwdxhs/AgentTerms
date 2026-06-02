@@ -78,6 +78,7 @@
 "font_family" = "Font";
 "font_size" = "Size";
 "system_default" = "System Default";
+"copy_on_select" = "Copy on Select";
 
 /* Notifications */
 "notif_needs_input" = "🙋 Agent has a question";
@@ -89,3 +90,16 @@
 "force_delete_title" = "Force Delete";
 "force_delete" = "Force Delete";
 "force_delete_message" = "This snapshot has uncommitted code changes. Force deleting will permanently lose data. Continue?";
+
+/* Shortcuts */
+"settings_shortcuts" = "Shortcuts";
+"prev_workspace_label" = "Previous Workspace";
+"next_workspace_label" = "Next Workspace";
+"prev_snapshot_label" = "Previous Snapshot";
+"next_snapshot_label" = "Next Snapshot";
+"jump_to_attention_label" = "Jump to Attention";
+"new_agent_label" = "New Terminal";
+"new_snapshot_label" = "New Snapshot";
+"close_agent_label" = "Close Agent";
+"reset_to_default" = "Reset to Default";
+"press_shortcut" = "Press shortcut...";

@@ -51,6 +51,11 @@ final class StatusMonitor {
                 }
             }
         }
+
+        // Refresh current snapshot branch in background
+        DispatchQueue.main.async {
+            appState.refreshCurrentSnapshotBranch()
+        }
     }
 
     // MARK: - Status Detection

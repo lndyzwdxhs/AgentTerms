@@ -12,10 +12,10 @@ struct AgentGridView: View {
 
     /// Auto-select first agent and pre-warm all terminals
     private func autoSelectAndWarmTerminals(snapshot: Snapshot) {
-        // Auto-select first agent if none selected or current selection not in this snapshot
+        // Restore last-selected agent if current selection not in this snapshot
         if appState.selectedAgentID == nil ||
            !snapshot.agents.contains(where: { $0.id == appState.selectedAgentID }) {
-            appState.selectedAgentID = snapshot.agents.first?.id
+            appState.restoreAgentSelection(for: snapshot.id)
         }
 
         // Pre-warm terminals for all agents in background
@@ -24,11 +24,13 @@ struct AgentGridView: View {
                 _ = TerminalManager.shared.terminal(
                     for: agent.id,
                     theme: settings.terminalTheme,
+                    tool: agent.tool,
                     command: settings.command(for: agent.tool),
                     workingDirectory: agent.workingDirectory,
                     configPath: settings.configPath(for: agent.tool),
                     sessionID: agent.sessionID,
                     resumeArg: settings.resumeArg(for: agent.tool),
+                    copyOnSelect: settings.terminalCopyOnSelect,
                     appState: appState,
                     onProcessExit: {
                         appState.updateAgentStatus(agentID: agent.id, status: .idle)
@@ -95,6 +97,7 @@ struct AgentGridView: View {
                     TerminalSwitcherView(
                         agentID: agent.id,
                         theme: settings.terminalTheme,
+                        tool: agent.tool,
                         command: settings.command(for: agent.tool),
                         workingDirectory: agent.workingDirectory,
                         configPath: settings.configPath(for: agent.tool),
@@ -102,6 +105,7 @@ struct AgentGridView: View {
                         resumeArg: settings.resumeArg(for: agent.tool),
                         fontName: settings.terminalFontName,
                         fontSize: settings.terminalFontSize,
+                        copyOnSelect: settings.terminalCopyOnSelect,
                         appState: appState,
                         onProcessExit: {
                             appState.updateAgentStatus(agentID: agent.id, status: .idle)
@@ -170,12 +174,18 @@ struct AgentCard: View {
                 .padding(.leading, 10)
 
             VStack(alignment: .leading, spacing: 5) {
-                // Row 1: Name + shortcut
-                HStack {
+                // Row 1: Name + session indicator + shortcut
+                HStack(spacing: 4) {
                     Text(agent.taskDescription.isEmpty ? "Agent" : agent.taskDescription)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
+                    if let sessionID = agent.sessionID, !sessionID.isEmpty {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.green)
+                            .help("已连接 Session ID: \(sessionID)")
+                    }
                     Spacer(minLength: 4)
                     Text("⌘\(index)")
                         .font(.system(size: 11, weight: .medium))
@@ -202,7 +212,7 @@ struct AgentCard: View {
             if isSelected {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color(nsColor: .controlBackgroundColor))
-                    .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+                    .shadow(color: Color.accentColor.opacity(0.15), radius: 6, y: 2)
             } else if isHovered {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color(nsColor: .quaternaryLabelColor).opacity(0.5))
@@ -213,7 +223,7 @@ struct AgentCard: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(isSelected ? Color.black.opacity(0.08) : Color(nsColor: .separatorColor).opacity(0.3), lineWidth: 0.5)
+                .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color(nsColor: .separatorColor).opacity(0.3), lineWidth: isSelected ? 1.5 : 0.5)
         }
         .contentShape(Rectangle())
         .onHover { hovering in

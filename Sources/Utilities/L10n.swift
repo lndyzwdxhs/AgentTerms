@@ -88,10 +88,24 @@ enum L10n {
     static var fontFamily: String { "font_family".localized }
     static var fontSize: String { "font_size".localized }
     static var systemDefault: String { "system_default".localized }
+    static var copyOnSelect: String { "copy_on_select".localized }
 
     // MARK: - Notifications
     static var notifNeedsInput: String { "notif_needs_input".localized }
     static var notifError: String { "notif_error".localized }
+
+    // MARK: - Shortcuts
+    static var settingsShortcuts: String { "settings_shortcuts".localized }
+    static var prevWorkspace: String { "prev_workspace_label".localized }
+    static var nextWorkspace: String { "next_workspace_label".localized }
+    static var prevSnapshot: String { "prev_snapshot_label".localized }
+    static var nextSnapshot: String { "next_snapshot_label".localized }
+    static var jumpToAttention: String { "jump_to_attention_label".localized }
+    static var newAgentShortcut: String { "new_agent_label".localized }
+    static var newSnapshotShortcut: String { "new_snapshot_label".localized }
+    static var closeAgentLabel: String { "close_agent_label".localized }
+    static var resetToDefault: String { "reset_to_default".localized }
+    static var pressShortcut: String { "press_shortcut".localized }
 }
 
 extension String {

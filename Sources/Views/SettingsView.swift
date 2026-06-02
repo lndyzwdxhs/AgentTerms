@@ -5,11 +5,13 @@ import SwiftUI
 private enum SettingsTab: String, CaseIterable {
     case general
     case tools
+    case shortcuts
 
     var label: String {
         switch self {
         case .general: return L10n.settingsGeneral
         case .tools: return L10n.settingsTools
+        case .shortcuts: return L10n.settingsShortcuts
         }
     }
 
@@ -17,6 +19,7 @@ private enum SettingsTab: String, CaseIterable {
         switch self {
         case .general: return "gear"
         case .tools: return "terminal"
+        case .shortcuts: return "keyboard"
         }
     }
 }
@@ -32,6 +35,7 @@ struct SettingsView: View {
     @State private var selectedTheme: TerminalTheme = .kittyLowContrast
     @State private var selectedFontName: String = "Menlo"
     @State private var selectedFontSize: CGFloat = 20
+    @State private var selectedCopyOnSelect: Bool = false
 
     // Tool configs
     @State private var claudeCommand = ""
@@ -50,6 +54,10 @@ struct SettingsView: View {
     @State private var otherConfigPath = ""
     @State private var otherResumeArg = ""
 
+    // Shortcuts
+    @State private var editedBindings: [ShortcutAction: KeyBinding] = ShortcutAction.defaults
+    @State private var recordingAction: ShortcutAction? = nil
+
     var body: some View {
         VStack(spacing: 0) {
             // Tab bar
@@ -67,6 +75,8 @@ struct SettingsView: View {
                         generalContent
                     case .tools:
                         toolsContent
+                    case .shortcuts:
+                        shortcutsContent
                     }
                 }
                 .padding(24)
@@ -86,7 +96,7 @@ struct SettingsView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
         }
-        .frame(width: 500, height: 480)
+        .frame(width: 500, height: 540)
         .onAppear { loadAll() }
     }
 
@@ -176,6 +186,11 @@ struct SettingsView: View {
                         }
                         .buttonStyle(.borderless)
                     }
+                }
+                Divider().padding(.leading, 14)
+                SettingsRow(label: L10n.copyOnSelect) {
+                    Toggle("", isOn: $selectedCopyOnSelect)
+                        .toggleStyle(.switch)
                 }
                 Divider().padding(.leading, 14)
                 // Font preview
@@ -281,6 +296,39 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Shortcuts Tab
+
+    private var shortcutsContent: some View {
+        VStack(spacing: 20) {
+            SettingsSection(title: L10n.settingsShortcuts) {
+                ForEach(ShortcutAction.allCases, id: \.self) { action in
+                    if action != ShortcutAction.allCases.first {
+                        Divider().padding(.leading, 14)
+                    }
+                    ShortcutRow(
+                        action: action,
+                        binding: editedBindings[action] ?? ShortcutAction.defaults[action]!,
+                        isRecording: recordingAction == action,
+                        onStartRecording: { recordingAction = action },
+                        onBindingRecorded: { newBinding in
+                            editedBindings[action] = newBinding
+                            recordingAction = nil
+                        },
+                        onCancelRecording: { recordingAction = nil }
+                    )
+                }
+            }
+
+            HStack {
+                Button(L10n.resetToDefault) {
+                    editedBindings = ShortcutAction.defaults
+                }
+                .buttonStyle(.borderless)
+                Spacer()
+            }
+        }
+    }
+
     // MARK: - Data
 
     private func loadAll() {
@@ -288,6 +336,7 @@ struct SettingsView: View {
         selectedTheme = settings.terminalTheme
         selectedFontName = settings.terminalFontName
         selectedFontSize = settings.terminalFontSize
+        selectedCopyOnSelect = settings.terminalCopyOnSelect
         claudeCommand = settings.toolConfigs[.claudeCode]?.command ?? ""
         claudeConfigPath = settings.toolConfigs[.claudeCode]?.configPath ?? ""
         claudeResumeArg = settings.toolConfigs[.claudeCode]?.resumeArg ?? ""
@@ -303,6 +352,7 @@ struct SettingsView: View {
         otherCommand = settings.toolConfigs[.other]?.command ?? ""
         otherConfigPath = settings.toolConfigs[.other]?.configPath ?? ""
         otherResumeArg = settings.toolConfigs[.other]?.resumeArg ?? ""
+        editedBindings = settings.keyBindings
     }
 
     private func saveAll() {
@@ -310,14 +360,153 @@ struct SettingsView: View {
         settings.terminalTheme = selectedTheme
         settings.terminalFontName = selectedFontName
         settings.terminalFontSize = selectedFontSize
+        settings.terminalCopyOnSelect = selectedCopyOnSelect
         settings.toolConfigs[.claudeCode] = ToolConfig(command: claudeCommand, configPath: claudeConfigPath, resumeArg: claudeResumeArg)
         settings.toolConfigs[.codeBuddy] = ToolConfig(command: codeBuddyCommand, configPath: codeBuddyConfigPath, resumeArg: codeBuddyResumeArg)
         settings.toolConfigs[.codex] = ToolConfig(command: codexCommand, configPath: codexConfigPath, resumeArg: codexResumeArg)
         settings.toolConfigs[.gemini] = ToolConfig(command: geminiCommand, configPath: geminiConfigPath, resumeArg: geminiResumeArg)
         settings.toolConfigs[.other] = ToolConfig(command: otherCommand, configPath: otherConfigPath, resumeArg: otherResumeArg)
+        settings.keyBindings = editedBindings
         settings.save()
         // Apply font to all running terminals
         TerminalManager.shared.setFont(name: selectedFontName, size: selectedFontSize)
+        // Apply copy-on-select to all running terminals
+        TerminalManager.shared.setCopyOnSelect(selectedCopyOnSelect)
+    }
+}
+
+// MARK: - Shortcut Row
+
+private struct ShortcutRow: View {
+    let action: ShortcutAction
+    let binding: KeyBinding
+    let isRecording: Bool
+    let onStartRecording: () -> Void
+    let onBindingRecorded: (KeyBinding) -> Void
+    let onCancelRecording: () -> Void
+
+    var body: some View {
+        HStack {
+            Text(action.displayName)
+                .font(.system(size: 13))
+            Spacer()
+            if isRecording {
+                ShortcutRecorderView(onRecorded: onBindingRecorded, onCancel: onCancelRecording)
+            } else {
+                Button {
+                    onStartRecording()
+                } label: {
+                    Text(binding.displayString)
+                        .font(.system(size: 12, design: .monospaced))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(nsColor: .controlBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .stroke(Color(nsColor: .separatorColor).opacity(0.5), lineWidth: 0.5)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+}
+
+// MARK: - Shortcut Recorder
+
+private struct ShortcutRecorderView: NSViewRepresentable {
+    let onRecorded: (KeyBinding) -> Void
+    let onCancel: () -> Void
+
+    func makeNSView(context: Context) -> ShortcutRecorderNSView {
+        let view = ShortcutRecorderNSView(onRecorded: onRecorded, onCancel: onCancel)
+        // Make it first responder on next run loop to ensure it's in the view hierarchy
+        DispatchQueue.main.async {
+            view.window?.makeFirstResponder(view)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: ShortcutRecorderNSView, context: Context) {}
+}
+
+private class ShortcutRecorderNSView: NSView {
+    let onRecorded: (KeyBinding) -> Void
+    let onCancel: () -> Void
+    private var monitor: Any?
+
+    init(onRecorded: @escaping (KeyBinding) -> Void, onCancel: @escaping () -> Void) {
+        self.onRecorded = onRecorded
+        self.onCancel = onCancel
+        super.init(frame: NSRect(x: 0, y: 0, width: 120, height: 24))
+        wantsLayer = true
+        layer?.cornerRadius = 4
+        layer?.borderWidth = 1
+        layer?.borderColor = NSColor.controlAccentColor.cgColor
+
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKey(event)
+            return nil
+        }
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    deinit {
+        if let m = monitor { NSEvent.removeMonitor(m) }
+    }
+
+    override var intrinsicContentSize: NSSize { NSSize(width: 120, height: 24) }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        let str = L10n.pressShortcut
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 11),
+            .foregroundColor: NSColor.secondaryLabelColor
+        ]
+        let size = (str as NSString).size(withAttributes: attrs)
+        let point = NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2)
+        (str as NSString).draw(at: point, withAttributes: attrs)
+    }
+
+    private func handleKey(_ event: NSEvent) {
+        // Escape cancels
+        if event.keyCode == 53 {
+            onCancel()
+            return
+        }
+
+        let eventMods = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        // Require at least one modifier
+        guard !eventMods.isEmpty else { return }
+
+        var modifiers: Set<KeyBinding.KeyModifier> = []
+        if eventMods.contains(.command) { modifiers.insert(.command) }
+        if eventMods.contains(.shift) { modifiers.insert(.shift) }
+        if eventMods.contains(.option) { modifiers.insert(.option) }
+        if eventMods.contains(.control) { modifiers.insert(.control) }
+
+        let key: String
+        switch event.keyCode {
+        case 126: key = "↑"
+        case 125: key = "↓"
+        case 123: key = "←"
+        case 124: key = "→"
+        case 36: key = "↩"
+        default:
+            key = event.charactersIgnoringModifiers?.lowercased() ?? ""
+        }
+
+        guard !key.isEmpty else { return }
+
+        let binding = KeyBinding(key: key, modifiers: modifiers)
+        onRecorded(binding)
     }
 }
 

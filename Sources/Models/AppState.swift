@@ -8,6 +8,11 @@ final class AppState {
     var selectedSnapshotID: UUID?
     var selectedAgentID: UUID?
 
+    /// Remembers the last-selected snapshot per workspace
+    private var lastSnapshotPerWorkspace: [UUID: UUID] = [:]
+    /// Remembers the last-selected agent per snapshot
+    private var lastAgentPerSnapshot: [UUID: UUID] = [:]
+
     private let persistence = PersistenceService()
     private let statusMonitor = StatusMonitor()
 
@@ -34,6 +39,54 @@ final class AppState {
     var selectedSnapshot: Snapshot? {
         guard let wsIdx = workspaces.firstIndex(where: { $0.id == selectedWorkspaceID }) else { return nil }
         return workspaces[wsIdx].snapshots.first { $0.id == selectedSnapshotID }
+    }
+
+    /// Remember current snapshot selection for the current workspace
+    func rememberSnapshotSelection() {
+        guard let wsID = selectedWorkspaceID, let snapshotID = selectedSnapshotID else { return }
+        lastSnapshotPerWorkspace[wsID] = snapshotID
+        // Also remember agent selection for the current snapshot
+        rememberAgentSelection()
+    }
+
+    /// Restore the last-selected snapshot for a workspace, or fall back to first
+    func restoreSnapshotSelection(for workspaceID: UUID) {
+        guard let ws = workspaces.first(where: { $0.id == workspaceID }) else {
+            selectedSnapshotID = nil
+            return
+        }
+        if let lastID = lastSnapshotPerWorkspace[workspaceID],
+           ws.snapshots.contains(where: { $0.id == lastID }) {
+            selectedSnapshotID = lastID
+        } else {
+            selectedSnapshotID = ws.snapshots.first?.id
+        }
+        // Also restore agent selection for the restored snapshot
+        if let snapshotID = selectedSnapshotID {
+            restoreAgentSelection(for: snapshotID)
+        }
+    }
+
+    /// Remember current agent selection for a given snapshot
+    func rememberAgentSelection(for snapshotID: UUID? = nil) {
+        let targetSnapshotID = snapshotID ?? selectedSnapshotID
+        guard let sid = targetSnapshotID, let agentID = selectedAgentID else { return }
+        lastAgentPerSnapshot[sid] = agentID
+    }
+
+    /// Restore the last-selected agent for a snapshot, or fall back to first
+    func restoreAgentSelection(for snapshotID: UUID) {
+        guard let ws = workspaces.first(where: { $0.id == selectedWorkspaceID }),
+              let snapshot = ws.snapshots.first(where: { $0.id == snapshotID }) else {
+            selectedAgentID = nil
+            return
+        }
+        if let lastID = lastAgentPerSnapshot[snapshotID],
+           snapshot.agents.contains(where: { $0.id == lastID }) {
+            selectedAgentID = lastID
+        } else {
+            selectedAgentID = snapshot.agents.first?.id
+        }
     }
 
     var allAgents: [Agent] {
@@ -183,6 +236,18 @@ final class AppState {
 
     func saveState() {
         persistence.save(workspaces: workspaces)
+    }
+
+    /// Refresh the branch name for the currently selected snapshot from git
+    func refreshCurrentSnapshotBranch() {
+        guard let wsIdx = workspaces.firstIndex(where: { $0.id == selectedWorkspaceID }),
+              let snapshotIdx = workspaces[wsIdx].snapshots.firstIndex(where: { $0.id == selectedSnapshotID }) else { return }
+        let worktreePath = workspaces[wsIdx].snapshots[snapshotIdx].worktreePath
+        let actualBranch = GitService.currentBranch(repoPath: worktreePath)
+        if workspaces[wsIdx].snapshots[snapshotIdx].branch != actualBranch {
+            workspaces[wsIdx].snapshots[snapshotIdx].branch = actualBranch
+            saveState()
+        }
     }
 
     func loadState() {

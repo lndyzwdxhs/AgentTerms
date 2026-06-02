@@ -93,6 +93,7 @@ class TerminalContainerView: NSView {
 struct TerminalSwitcherView: NSViewRepresentable {
     let agentID: UUID?
     let theme: TerminalTheme
+    let tool: AgentTool
     let command: String
     let workingDirectory: String
     let configPath: String
@@ -100,6 +101,7 @@ struct TerminalSwitcherView: NSViewRepresentable {
     let resumeArg: String
     let fontName: String
     let fontSize: CGFloat
+    let copyOnSelect: Bool
     let appState: AppState
     let onProcessExit: () -> Void
 
@@ -115,11 +117,13 @@ struct TerminalSwitcherView: NSViewRepresentable {
         let terminal = TerminalManager.shared.terminal(
             for: agentID,
             theme: theme,
+            tool: tool,
             command: command,
             workingDirectory: workingDirectory,
             configPath: configPath,
             sessionID: sessionID,
             resumeArg: resumeArg,
+            copyOnSelect: copyOnSelect,
             appState: appState,
             onProcessExit: onProcessExit
         )

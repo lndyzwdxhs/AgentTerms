@@ -56,6 +56,7 @@ struct TerminalFullView: View {
             TerminalSwitcherView(
                 agentID: agent.id,
                 theme: selectedTheme,
+                tool: agent.tool,
                 command: settings.command(for: agent.tool),
                 workingDirectory: agent.workingDirectory,
                 configPath: settings.configPath(for: agent.tool),
@@ -63,6 +64,7 @@ struct TerminalFullView: View {
                 resumeArg: settings.resumeArg(for: agent.tool),
                 fontName: settings.terminalFontName,
                 fontSize: settings.terminalFontSize,
+                copyOnSelect: settings.terminalCopyOnSelect,
                 appState: appState,
                 onProcessExit: {
                     appState.updateAgentStatus(agentID: agent.id, status: .idle)

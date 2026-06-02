@@ -5,6 +5,7 @@ import AppKit
 struct AgentTermsApp: App {
     @State private var appState = AppState()
     @State private var settings = Settings()
+    @State private var shortcutMonitor: KeyboardShortcutMonitor?
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
@@ -15,6 +16,9 @@ struct AgentTermsApp: App {
                 .frame(minWidth: 800, minHeight: 600)
                 .onAppear {
                     appState.startMonitoring(settings: settings)
+                    if shortcutMonitor == nil {
+                        shortcutMonitor = KeyboardShortcutMonitor(appState: appState, settings: settings)
+                    }
                 }
         }
         .windowResizability(.contentMinSize)

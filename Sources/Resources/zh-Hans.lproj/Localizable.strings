@@ -78,6 +78,7 @@
 "font_family" = "字体";
 "font_size" = "字号";
 "system_default" = "系统默认";
+"copy_on_select" = "选择即复制";
 
 /* Notifications */
 "notif_needs_input" = "🙋 Agent 举手了";
@@ -89,3 +90,16 @@
 "force_delete_title" = "强制删除";
 "force_delete" = "强制删除";
 "force_delete_message" = "该工作快照有未提交的代码修改，强制删除后数据无法恢复，确定继续？";
+
+/* Shortcuts */
+"settings_shortcuts" = "快捷键";
+"prev_workspace_label" = "上一个工作区";
+"next_workspace_label" = "下一个工作区";
+"prev_snapshot_label" = "上一个工作快照";
+"next_snapshot_label" = "下一个工作快照";
+"jump_to_attention_label" = "跳转到需要关注";
+"new_agent_label" = "新建终端";
+"new_snapshot_label" = "新建工作快照";
+"close_agent_label" = "关闭 Agent";
+"reset_to_default" = "恢复默认";
+"press_shortcut" = "请按下快捷键...";

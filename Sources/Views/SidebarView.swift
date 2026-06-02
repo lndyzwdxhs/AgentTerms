@@ -12,6 +12,23 @@ struct SidebarView: View {
     var body: some View {
         @Bindable var state = appState
 
+        let workspaceBinding = Binding<UUID?>(
+            get: { appState.selectedWorkspaceID },
+            set: { newID in
+                let oldID = appState.selectedWorkspaceID
+                guard newID != oldID else { return }
+                // Remember before switching
+                if oldID != nil {
+                    appState.rememberSnapshotSelection()
+                }
+                appState.selectedWorkspaceID = newID
+                // Restore after switching
+                if let newID {
+                    appState.restoreSnapshotSelection(for: newID)
+                }
+            }
+        )
+
         VStack(spacing: 0) {
             // Search/filter bar
             HStack {
@@ -39,7 +56,7 @@ struct SidebarView: View {
             .padding(.bottom, 4)
 
             // Workspace list
-            List(selection: $state.selectedWorkspaceID) {
+            List(selection: workspaceBinding) {
                 ForEach(filteredWorkspaces) { workspace in
                     WorkspaceRow(workspace: workspace)
                         .tag(workspace.id)
@@ -58,13 +75,6 @@ struct SidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            .onChange(of: appState.selectedWorkspaceID) { _, newID in
-                // Auto-select first snapshot when switching workspace
-                if let newID, let ws = appState.workspaces.first(where: { $0.id == newID }) {
-                    appState.selectedSnapshotID = ws.snapshots.first?.id
-                    appState.selectedAgentID = nil
-                }
-            }
 
             Divider()
 

@@ -6,7 +6,7 @@ import AppKit
 final class TerminalManager {
     static let shared = TerminalManager()
 
-    private var terminals: [UUID: LocalProcessTerminalView] = [:]
+    private var terminals: [UUID: CopyOnSelectTerminalView] = [:]
     private var sessionDetectionTimers: [UUID: Timer] = [:]
 
     private init() {}
@@ -15,22 +15,25 @@ final class TerminalManager {
     func terminal(
         for agentID: UUID,
         theme: TerminalTheme,
+        tool: AgentTool,
         command: String,
         workingDirectory: String,
         configPath: String,
         sessionID: String?,
         resumeArg: String,
+        copyOnSelect: Bool,
         appState: AppState,
         onProcessExit: @escaping () -> Void
-    ) -> LocalProcessTerminalView {
+    ) -> CopyOnSelectTerminalView {
         // Return cached terminal if exists
         if let existing = terminals[agentID] {
             return existing
         }
 
         // Create new terminal
-        let terminalView = LocalProcessTerminalView(frame: NSRect(x: 0, y: 0, width: 600, height: 400))
+        let terminalView = CopyOnSelectTerminalView(frame: NSRect(x: 0, y: 0, width: 600, height: 400))
         terminalView.optionAsMetaKey = true
+        terminalView.copyOnSelectEnabled = copyOnSelect
 
         // Apply theme
         applyTheme(theme, to: terminalView)
@@ -69,6 +72,7 @@ final class TerminalManager {
                 effectiveCommand = command
                 startSessionDetection(
                     agentID: agentID,
+                    tool: tool,
                     workingDirectory: workingDirectory,
                     configPath: configPath,
                     appState: appState
@@ -118,6 +122,13 @@ final class TerminalManager {
         }
     }
 
+    /// Update copy-on-select for all cached terminals
+    func setCopyOnSelect(_ enabled: Bool) {
+        for terminal in terminals.values {
+            terminal.copyOnSelectEnabled = enabled
+        }
+    }
+
     /// Check if a terminal exists for an agent
     func hasTerminal(for agentID: UUID) -> Bool {
         terminals[agentID] != nil
@@ -142,6 +153,7 @@ final class TerminalManager {
     /// After first launch, poll for new JSONL file to discover the session ID
     private func startSessionDetection(
         agentID: UUID,
+        tool: AgentTool,
         workingDirectory: String,
         configPath: String,
         appState: AppState
@@ -151,11 +163,17 @@ final class TerminalManager {
         if !configPath.isEmpty {
             base = (configPath as NSString).expandingTildeInPath
         } else {
-            base = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude").path
+            // Default base path depends on tool type
+            switch tool {
+            case .codeBuddy:
+                base = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codebuddy").path
+            default:
+                base = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude").path
+            }
         }
-        // Use appropriate encoding based on config path
+        // Use appropriate encoding based on tool type
         let encodedDir: String
-        if base.contains(".codebuddy") {
+        if tool == .codeBuddy || base.contains(".codebuddy") {
             encodedDir = StatusMonitor.encodeCodeBuddyProjectDirName(workingDirectory: workingDirectory)
         } else {
             encodedDir = StatusMonitor.encodeProjectDirName(workingDirectory: workingDirectory)
