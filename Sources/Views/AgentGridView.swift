@@ -11,7 +11,7 @@ struct AgentGridView: View {
         appState.selectedSnapshot
     }
 
-    /// Auto-select first agent and pre-warm all terminals
+    /// Auto-select first agent and pre-warm all terminals (skip notes agents)
     private func autoSelectAndWarmTerminals(snapshot: Snapshot) {
         // Restore last-selected agent if current selection not in this snapshot
         if appState.selectedAgentID == nil ||
@@ -19,8 +19,8 @@ struct AgentGridView: View {
             appState.restoreAgentSelection(for: snapshot.id)
         }
 
-        // Pre-warm terminals for all agents in background
-        for agent in snapshot.agents {
+        // Pre-warm terminals for all non-notes agents in background
+        for agent in snapshot.agents where agent.tool != .notes {
             if !TerminalManager.shared.hasTerminal(for: agent.id) {
                 _ = TerminalManager.shared.terminal(
                     for: agent.id,
@@ -100,31 +100,43 @@ struct AgentGridView: View {
                 // Bottom: Terminal area
                 if let agentID = appState.selectedAgentID,
                    let agent = snapshot.agents.first(where: { $0.id == agentID }) {
-                    TerminalSwitcherView(
-                        agentID: agent.id,
-                        theme: settings.terminalTheme,
-                        tool: agent.tool,
-                        command: settings.command(for: agent.tool),
-                        workingDirectory: agent.workingDirectory,
-                        configPath: settings.configPath(for: agent.tool),
-                        sessionID: agent.sessionID,
-                        resumeArg: settings.resumeArg(for: agent.tool),
-                        fontName: settings.terminalFontName,
-                        fontSize: settings.terminalFontSize,
-                        copyOnSelect: settings.terminalCopyOnSelect,
-                        appState: appState,
-                        onProcessExit: {
-                            appState.updateAgentStatus(agentID: agent.id, status: .idle)
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(Color.black.opacity(0.1), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    if agent.tool == .notes {
+                        NotesEditorView(agentID: agent.id, initialContent: agent.notesContent ?? "")
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 16)
+                    } else {
+                        TerminalSwitcherView(
+                            agentID: agent.id,
+                            theme: settings.terminalTheme,
+                            tool: agent.tool,
+                            command: settings.command(for: agent.tool),
+                            workingDirectory: agent.workingDirectory,
+                            configPath: settings.configPath(for: agent.tool),
+                            sessionID: agent.sessionID,
+                            resumeArg: settings.resumeArg(for: agent.tool),
+                            fontName: settings.terminalFontName,
+                            fontSize: settings.terminalFontSize,
+                            copyOnSelect: settings.terminalCopyOnSelect,
+                            appState: appState,
+                            onProcessExit: {
+                                appState.updateAgentStatus(agentID: agent.id, status: .idle)
+                            }
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                    }
                 } else {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(Color(nsColor: .textBackgroundColor).opacity(0.4))

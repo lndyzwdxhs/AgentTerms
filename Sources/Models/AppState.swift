@@ -214,6 +214,18 @@ final class AppState {
         }
     }
 
+    func updateAgentNotes(agentID: UUID, content: String) {
+        for wsIdx in workspaces.indices {
+            for snapshotIdx in workspaces[wsIdx].snapshots.indices {
+                if let agentIdx = workspaces[wsIdx].snapshots[snapshotIdx].agents.firstIndex(where: { $0.id == agentID }) {
+                    workspaces[wsIdx].snapshots[snapshotIdx].agents[agentIdx].notesContent = content
+                    saveState()
+                    return
+                }
+            }
+        }
+    }
+
     func updateAgentStatus(agentID: UUID, status: AgentStatus) {
         for wsIdx in workspaces.indices {
             for snapshotIdx in workspaces[wsIdx].snapshots.indices {

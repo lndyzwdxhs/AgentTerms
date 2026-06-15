@@ -6,6 +6,7 @@ enum AgentTool: String, Codable, CaseIterable {
     case codeBuddy = "CodeBuddy"
     case codex = "Codex"
     case gemini = "Gemini"
+    case notes = "Notes"
     case other = "Other"
 
     var icon: String {
@@ -14,6 +15,7 @@ enum AgentTool: String, Codable, CaseIterable {
         case .codeBuddy: return "hammer"
         case .codex: return "terminal"
         case .gemini: return "sparkles"
+        case .notes: return "note.text"
         case .other: return "command"
         }
     }
@@ -25,6 +27,7 @@ enum AgentTool: String, Codable, CaseIterable {
         case .codeBuddy: return "CodeBuddy"
         case .codex: return "Codex"
         case .gemini: return "Gemini"
+        case .notes: return "Notes"
         case .other: return "Other"
         }
     }
@@ -75,12 +78,13 @@ struct Agent: Identifiable, Codable, Hashable {
     var taskDescription: String
     var sessionID: String?
     var projectPath: String?  // e.g. ~/.claude-internal/projects/-Users-shuaizi-...
+    var notesContent: String?
 
     // Runtime only — not persisted
     var status: AgentStatus = .idle
 
     enum CodingKeys: String, CodingKey {
-        case id, tool, workingDirectory, taskDescription, sessionID, projectPath
+        case id, tool, workingDirectory, taskDescription, sessionID, projectPath, notesContent
     }
 
     init(
@@ -89,7 +93,8 @@ struct Agent: Identifiable, Codable, Hashable {
         workingDirectory: String,
         taskDescription: String,
         sessionID: String? = nil,
-        projectPath: String? = nil
+        projectPath: String? = nil,
+        notesContent: String? = nil
     ) {
         self.id = id
         self.tool = tool
@@ -97,6 +102,7 @@ struct Agent: Identifiable, Codable, Hashable {
         self.taskDescription = taskDescription
         self.sessionID = sessionID
         self.projectPath = projectPath
+        self.notesContent = notesContent
     }
 
     init(from decoder: Decoder) throws {
@@ -107,6 +113,7 @@ struct Agent: Identifiable, Codable, Hashable {
         taskDescription = try container.decode(String.self, forKey: .taskDescription)
         sessionID = try container.decodeIfPresent(String.self, forKey: .sessionID)
         projectPath = try container.decodeIfPresent(String.self, forKey: .projectPath)
+        notesContent = try container.decodeIfPresent(String.self, forKey: .notesContent)
         status = .idle
     }
 

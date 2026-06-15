@@ -13,6 +13,7 @@ final class PTYService {
         case .codeBuddy: return "codebuddy"
         case .codex: return "codex"
         case .gemini: return "gemini"
+        case .notes: return "" // Notes is not a terminal tool
         case .other: return ""
         }
     }
